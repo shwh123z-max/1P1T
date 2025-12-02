@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        * { box-sizing: border-box; } 
+
+        body { font-family: 'Pretendard', sans-serif; background-color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; perspective: 1000px; }
+
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; background: #222; transition: 0.3s; z-index: 100;}
+        .hidden { display: none !important; }
+
+        .scene { width: 320px; height: 480px; position: relative; display: none; z-index: 50; margin-bottom: 60px; }
+        .card { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 20px; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        
+        .card-front { pointer-events: auto; z-index: 2; display: flex; flex-direction: column; }
+        .card-back { pointer-events: none; z-index: 1; transform: rotateY(180deg); background: #fffdf5; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; text-align: center; color: #333; }
+        .card.is-flipped .card-front { pointer-events: none; }
+        .card.is-flipped .card-back { pointer-events: auto; }
+
+        .canvas-area { flex: 1; position: relative; background: #fff; cursor: crosshair; overflow: hidden; }
+        
+        /* 가이드라인 스타일 */
+        .guide-char { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: 300px; font-weight: 900; color: #ddd; opacity: 0.3; 
+            pointer-events: none; user-select: none; z-index: 1; 
+        }
+        
+        canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 10; }
+        
+        .tools { height: 60px; background: #f8f8f8; display: flex; justify-content: center; align-items: center; gap: 10px; border-top: 1px solid #ddd; z-index: 20;}
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;}
+        .trash-btn { background: #eee; color: #555; border: 1px solid #ccc; font-size: 16px; }
+
+        textarea { width: 100%; flex: 1; padding: 15px; border: 2px dashed #ccc; background: transparent; font-size: 16px; font-family: inherit; resize: none; border-radius: 10px; margin-bottom: 20px; }
+
+        input.intro-input { padding: 15px; font-size: 20px; border-radius: 30px; border: none; text-align: center; width: 250px; margin-top: 20px;}
+        button.btn-main { padding: 15px 40px; font-size: 18px; border-radius: 30px; border: none; background: #00c853; color: white; margin-top: 20px; cursor: pointer; font-weight: bold; }
+        
+        .action-bar { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 999; pointer-events: none; }
+        .btn-circle { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; pointer-events: auto; transition: transform 0.2s; }
+        .btn-flip { background: white; color: #333; }
+        .btn-send { background: #d63384; color: white; }
+        .btn-circle:active { transform: scale(0.9); }
+
+        .top-guide { position: absolute; top: -50px; width: 100%; text-align: center; color: white; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen" class="screen">
+        <h1 style="font-size: 40px;">Happy</h1>
+        <p>친구들과 카드를 완성해보세요</p>
+        <input type="text" id="userName" class="intro-input" placeholder="이름을 알려주세요">
+        <button class="btn-main" onclick="checkStart()">시작하기</button>
+    </div>
+
+    <div id="waiting-screen" class="screen hidden">
+        <h1 style="font-size: 60px;">🔒</h1>
+        <h2>참여 완료!</h2>
+        <p>친구들이 모두 모일 때까지 기다려주세요.</p>
+        <div style="margin-top:20px; font-size: 24px; color: #00c853; font-weight: bold;" id="open-time-display"></div>
+    </div>
+
+    <div id="final-screen" class="screen hidden" style="background: #111;">
+        <h1>🎉 Merry Christmas!</h1>
+        <div style="margin: 20px; padding: 10px; background: white; border-radius: 10px;">
+            <img src="result_card.jpg" style="max-width: 100%; max-height: 60vh; border-radius: 5px;">
+        </div>
+        <p style="font-size:12px; color:#666">새로고침하면 최신 이미지를 불러옵니다.</p>
+    </div>
+
+    <div class="scene" id="workspace">
+        <div class="top-guide" id="guideText">🎨 글자를 예쁘게 꾸며주세요!</div>
+        
+        <div class="card" id="mainCard">
+            <div class="card-face card-front">
+                <div class="canvas-area" id="canvasContainer">
+                    <div class="guide-char" id="targetChar">?</div>
+                    <canvas id="drawingCanvas"></canvas>
+                </div>
+                <div class="tools">
+                    <div class="color-btn" style="background:black" onclick="setColor('black')"></div>
+                    <div class="color-btn" style="background:#d63384" onclick="setColor('#d63384')"></div>
+                    <div class="color-btn" style="background:#00c853" onclick="setColor('#00c853')"></div>
+                    <div class="color-btn" style="background:#2979ff" onclick="setColor('#2979ff')"></div>
+                    <div class="color-btn" style="background:#ffea00" onclick="setColor('#ffea00')"></div>
+                    <div class="color-btn" style="background:white; border:1px solid #ccc" onclick="setColor('eraser')">🧽</div>
+                    <div class="color-btn trash-btn" onclick="clearAll()" title="전체 지우기">🗑️</div>
+                </div>
+            </div>
+            <div class="card-face card-back">
+                <h2>To. Host</h2>
+                <textarea id="letterMsg" placeholder="메시지를 남겨주세요..."></textarea>
+                <div style="font-size:12px; color:#999">작성자: <span id="display-name"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar" id="actionBar" style="display:none;">
+        <button class="btn-circle btn-flip" onclick="flipCard()">🔄</button>
+        <button class="btn-circle btn-send" onclick="submitCard()">✈️</button>
+    </div>
+
+    <script>
+        let myName = "";
+        let isFlipped = false;
+        let canvas, ctx, painting = false;
+        let currentColor = "black", lineWidth = 5;
+        let isEraserMode = false; // [NEW] 지우개 모드 상태 변수
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room');
+
+        if (!roomId) {
+            alert("잘못된 접근입니다! (방 번호가 없어요)");
+            document.body.innerHTML = "<h1 style='color:white;text-align:center;'>존재하지 않는 방입니다.</h1>";
+        }
+
+        async function checkStart() {
+            const nameInput = document.getElementById('userName');
+            if(!nameInput.value.trim()) return alert("이름을 입력해주세요!");
+            myName = nameInput.value;
+
+            try {
+                const res = await fetch(`/status/${roomId}`);
+                const status = await res.json();
+                
+                if(status.error) {
+                    alert("방이 존재하지 않습니다.");
+                    return;
+                }
+
+                if(status.is_open) {
+                    document.querySelector('#final-screen img').src = `/result_card/${roomId}`;
+                    showScreen('final-screen');
+                    return;
+                }
+
+                const reserveRes = await fetch(`/reserve/${roomId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_name: myName, message: "" })
+                });
+                const reserveData = await reserveRes.json();
+
+                if(reserveData.status === "TIME_OVER") {
+                    alert(reserveData.message);
+                    location.reload(); 
+                    return;
+                }
+
+                if (reserveData.status === "SUCCESS") {
+                    startDecorating(reserveData.assigned_char);
+                } else {
+                    if(confirm("글자 자리가 꽉 찼습니다! 데코레이션(★)으로 참여하시겠습니까?")) {
+                        startDecorating("★");
+                    } else {
+                        showWaiting(status.open_time);
+                    }
+                }
+            } catch(e) { alert("서버 연결 실패"); }
+        }
+
+        function startDecorating(char) {
+            showScreen('workspace');
+            document.getElementById('workspace').style.display = 'block';
+            document.getElementById('actionBar').style.display = 'flex';
+            document.getElementById('targetChar').innerText = char;
+            document.getElementById('display-name').innerText = myName;
+            initCanvas();
+            alert(`자리 예약 완료!\n당신이 꾸밀 글자는 [ ${char} ] 입니다!`);
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+            document.getElementById('workspace').style.display = 'none';
+            document.getElementById('actionBar').style.display = 'none';
+            const target = document.getElementById(id);
+            if(target) target.classList.remove('hidden');
+        }
+
+        function showWaiting(timeStr) {
+            showScreen('waiting-screen');
+            const dateObj = new Date(timeStr);
+            const timeDisplay = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('open-time-display').innerText = `${timeDisplay} OPEN`;
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const card = document.getElementById('mainCard');
+            const guide = document.getElementById('guideText');
+            painting = false; 
+            if(isFlipped) {
+                card.classList.add('is-flipped');
+                guide.innerText = "✍️ 편지를 작성해주세요";
+            } else {
+                card.classList.remove('is-flipped');
+                guide.innerText = "🎨 글자를 예쁘게 꾸며주세요";
+            }
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mouseup', endDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startDraw);
+            canvas.addEventListener('touchend', endDraw);
+            canvas.addEventListener('touchmove', draw);
+        }
+        function startDraw(e) { painting = true; draw(e); }
+        function endDraw() { painting = false; ctx.beginPath(); }
+        
+        function draw(e) {
+            if (!painting) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            
+            // [핵심 수정] 지우개 모드일 때는 'destination-out' 사용!
+            if (isEraserMode) {
+                ctx.globalCompositeOperation = 'destination-out'; // 투명하게 지우기
+                ctx.strokeStyle = 'rgba(0,0,0,1)'; // 색상은 상관없음
+            } else {
+                ctx.globalCompositeOperation = 'source-over'; // 덮어쓰기 (기본값)
+                ctx.strokeStyle = currentColor;
+            }
+
+            ctx.lineTo(clientX - rect.left, clientY - rect.top);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(clientX - rect.left, clientY - rect.top);
+        }
+
+        // [수정] 색상 변경 함수
+        function setColor(c) {
+            if(c === 'eraser') { 
+                isEraserMode = true; // 지우개 모드 ON
+                lineWidth = 20; 
+            } else { 
+                isEraserMode = false; // 지우개 모드 OFF
+                currentColor = c; 
+                lineWidth = 5; 
+            }
+        }
+
+        function clearAll() {
+            if(confirm("그림을 모두 지우시겠습니까?")) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        async function submitCard() {
+            const msg = document.getElementById('letterMsg').value;
+            if(!msg) return alert("뒷면에 편지를 써주세요!");
+            const imageData = document.getElementById('drawingCanvas').toDataURL("image/png");
+            
+            const res = await fetch(`/join/${roomId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_name: myName, message: msg, image_data: imageData })
+            });
+            const data = await res.json();
+
+            if(data.status === "TIME_OVER") {
+                alert(data.message);
+                location.reload(); 
+                return;
+            }
+
+            if(data.status === 'SUCCESS' || data.status === 'FULL') {
+                alert("전송 완료!");
+                const statusRes = await fetch(`/status/${roomId}`);
+                const status = await statusRes.json();
+                showWaiting(status.open_time);
+            } else {
+                alert("오류: " + (data.message || JSON.stringify(data.detail)));
+            }
+        }
+    </script>
+</body>
+</html>
