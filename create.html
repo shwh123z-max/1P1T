@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>호스트 관리자</title>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfTZ060z1kAJGG+uHuha" crossorigin="anonymous"></script>
+    
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { box-sizing: border-box; } 
@@ -15,16 +17,10 @@
         .screen { display: none; }
         .active { display: block; }
 
-        /* [수정] 2단 레이아웃 안정화 */
         .dashboard-layout { display: flex; flex-direction: column; gap: 30px; }
-        
         @media (min-width: 1024px) {
             .dashboard-layout { flex-direction: row; align-items: flex-start; text-align: left; }
-            
-            /* ★ 핵심 수정: min-width: 0 (이게 없으면 레이아웃이 터짐) */
             .left-panel { flex: 1; min-width: 0; } 
-            
-            /* 오른쪽 패널은 고정 크기 유지, 압축 금지(flex-shrink: 0) */
             .right-panel { width: 380px; flex-shrink: 0; position: sticky; top: 20px; } 
         }
 
@@ -37,9 +33,16 @@
         button.final { background-color: #d63384; margin-top: 20px; box-shadow: 0 4px 15px rgba(214, 51, 132, 0.4); }
         button.secondary { background-color: #555; width: auto; font-size: 14px; padding: 12px; margin-top: 0;}
         
-        /* [NEW] 홈 버튼 스타일 */
         .home-btn { background: #444; border: 1px solid #666; padding: 8px 15px; border-radius: 8px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 10px; }
         .home-btn:hover { background: #555; color: white; }
+
+        /* [NEW] 카카오 버튼 스타일 */
+        .kakao-btn { 
+            background-color: #FEE500; color: #000000; margin-top: 10px; 
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .kakao-btn:hover { background-color: #fdd835; }
+        .kakao-icon { width: 20px; height: 20px; }
 
         .grid-box { 
             background: #444; padding: 30px; border-radius: 16px; 
@@ -48,7 +51,6 @@
         }
         
         .row { display: flex; gap: 10px; width: max-content; }
-        
         .slot { width: 80px; height: 80px; background: #555; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 2px solid #666; color: #ccc; font-weight: bold; font-size: 24px; flex-shrink: 0; position: relative; overflow: hidden;}
         .slot img { width: 100%; height: 100%; object-fit: contain; background: white; }
         .slot.filled { border: 2px solid #ff80ab; animation: pop 0.3s ease; }
@@ -56,7 +58,7 @@
         
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
         
-        #link-box { margin-bottom: 20px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
+        #link-box { margin-bottom: 10px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
         a { color: #69f0ae; text-decoration: none; }
 
         #message-list { margin-top: 20px; text-align: left; max-height: 500px; overflow-y: auto; padding-right: 5px; }
@@ -76,15 +78,13 @@
         ::-webkit-scrollbar-track { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
     </style>
-    <meta name="theme-color" content="#222222">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
     <div class="container">
         
         <div id="screen-setup" class="screen active" style="max-width: 600px; margin: 0 auto;">
             <h2>🎨 방 만들기</h2>
-            <textarea id="TextInput" placeholder="Hi&#10;Hello" maxlength="50" oninput="handleInput()"></textarea>
+            <textarea id="TextInput" placeholder="MERRY&#10;CHRISTMAS" maxlength="50" oninput="handleInput()"></textarea>
             <input type="datetime-local" id="TimeInput">
             <div id="preview-box" class="grid-box" style="align-items: center; min-height: 100px;"></div> 
             <button onclick="createRoom()">이대로 방 생성</button>
@@ -101,10 +101,9 @@
         <div id="screen-dashboard" class="screen">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                 <div style="text-align: left;">
-                    <h2 style="margin:0;">📡 실시간 현황</h2>
+                    <h2 style="margin:0; white-space: nowrap;">📡 실시간 현황</h2>
                     <div style="font-size:14px; color:#aaa; margin-top:5px;">Room ID: <span id="display-room-id" style="color:#69f0ae; font-weight:bold;"></span></div>
                 </div>
-                
                 <button class="home-btn" onclick="goHome()">🏠 새 방 만들기</button>
             </div>
 
@@ -112,7 +111,6 @@
                 <div class="left-panel">
                     <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스</h3>
                     <div id="live-grid" class="grid-box"></div>
-                    
                     <div id="result-area">
                         <h3 style="margin: 10px 0; color: #ffeb3b;">🎉 완성된 카드</h3>
                         <img id="final-img" src="" alt="결과 이미지">
@@ -124,6 +122,11 @@
                         <div style="color:#aaa; font-size:12px; margin-bottom:5px;">친구 초대 링크 👇</div>
                         <a id="share-link" href="#" target="_blank">링크 생성 중...</a>
                     </div>
+
+                    <button id="kakao-invite-btn" class="kakao-btn" onclick="shareKakao()">
+                        <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_small.png" class="kakao-icon">
+                        카카오톡으로 초대하기
+                    </button>
 
                     <button class="final" onclick="makeFinalCard()">🎁 최종 카드 생성 & 저장</button>
                     <p style="font-size:12px; color:#aaa; margin-top:5px; margin-bottom: 30px;">* 친구들이 다 그리면 눌러주세요</p>
@@ -142,15 +145,54 @@
         let myRoomId = null;
 
         window.onload = function() {
+            // [NEW] 시작할 때 서버에서 카카오 키 받아오기
+            fetch('/api/config')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.kakao_key) {
+                        Kakao.init(data.kakao_key);
+                        console.log("카카오 초기화 성공");
+                    }
+                });
+
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('room');
             if (roomId) { rejoinRoom(roomId); }
         };
 
-        // [NEW] 홈으로 가기 함수
+        // [NEW] 카카오톡 공유 함수
+        function shareKakao() {
+            if(!myRoomId) return alert("방이 먼저 생성되어야 합니다.");
+            
+            const shareUrl = window.location.origin + "/?room=" + myRoomId;
+            
+            // 카카오톡 공유하기 실행
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: '🎄 함께 만드는 크리스마스 카드',
+                    description: '친구들이 모여서 하나의 타이포그래피를 완성해요! 내 글자를 꾸미러 와줘 ✍️',
+                    imageUrl: window.location.origin + '/og-image.png', // 썸네일 이미지
+                    link: {
+                        mobileWebUrl: shareUrl,
+                        webUrl: shareUrl,
+                    },
+                },
+                buttons: [
+                    {
+                        title: '카드 꾸미러 가기',
+                        link: {
+                            mobileWebUrl: shareUrl,
+                            webUrl: shareUrl,
+                        },
+                    },
+                ],
+            });
+        }
+
         function goHome() {
             if(confirm("현재 방에서 나가시겠습니까?")) {
-                window.location.href = "/host"; // 초기 화면으로 이동
+                window.location.href = "/host";
             }
         }
 
