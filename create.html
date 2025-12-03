@@ -3,202 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>호스트 관리자</title>
+    <title>Knitting Host</title>
     
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { box-sizing: border-box; } 
 
-        body { font-family: 'Pretendard', sans-serif; background: #222; color: white; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        .container { background: #333; padding: 2rem; border-radius: 20px; width: 95%; max-width: 1400px; text-align: center; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .screen { display: none; }
-        .active { display: block; }
-
-        .dashboard-layout { display: flex; flex-direction: column; gap: 30px; }
-        @media (min-width: 1024px) {
-            .dashboard-layout { flex-direction: row; align-items: flex-start; text-align: left; }
-            .left-panel { flex: 1; min-width: 0; } 
-            .right-panel { width: 380px; flex-shrink: 0; position: sticky; top: 20px; } 
+        /* [테마 컬러 정의] 따뜻한 겨울 니트 색감 */
+        :root {
+            --bg-color: #3E2723;       /* 짙은 갈색 배경 */
+            --panel-color: #4E342E;    /* 패널 배경 */
+            --text-color: #EFEBE9;     /* 연한 베이지 텍스트 */
+            --accent-green: #2E7D32;   /* 차분한 초록 */
+            --accent-red: #C62828;     /* 차분한 빨강 */
+            --card-base: #D7CCC8;      /* 니트 기본 베이지 */
         }
 
-        textarea { width: 100%; height: 100px; padding: 15px; margin: 15px 0; font-size: 22px; text-align: center; text-transform: uppercase; letter-spacing: 2px; border-radius: 12px; border: none; resize: none; font-family: monospace; background: #eee; font-weight: bold; color: #333; }
-        input[type="datetime-local"] { width: 100%; padding: 12px; border-radius: 12px; border: none; font-family: inherit; margin-bottom: 25px; font-size: 16px;}
-        input.rejoin-input { width: 60%; padding: 12px; border-radius: 12px; border: none; font-size: 16px; margin-right: 10px; text-align: center;}
-
-        button { width: 100%; padding: 18px; background-color: #00c853; color: white; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; margin-top: 15px; font-weight: bold; transition: 0.2s;}
-        button:hover { transform: scale(1.02); opacity: 0.9; }
-        button.final { background-color: #d63384; margin-top: 20px; box-shadow: 0 4px 15px rgba(214, 51, 132, 0.4); }
-        button.secondary { background-color: #555; width: auto; font-size: 14px; padding: 12px; margin-top: 0;}
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex; justify-content: center; align-items: flex-start; 
+            min-height: 100vh; margin: 0; padding: 40px 20px; 
+        }
         
-        .home-btn { background: #444; border: 1px solid #666; padding: 8px 15px; border-radius: 8px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 10px; }
-        .home-btn:hover { background: #555; color: white; }
-
-        .grid-box { 
-            background: #444; 
+        .container { 
+            background: var(--panel-color); 
             padding: 40px; 
-            border-radius: 16px; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 300px;
+            border-radius: 24px; 
+            width: 100%; max-width: 1200px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.05);
         }
         
-        .row { display: flex; width: max-content; margin: 0; padding: 0; } 
-        
-        /* [핵심] 플립 카드 스타일 */
-        .slot { 
-            width: 70px; height: 70px; 
-            background: transparent;
-            perspective: 1000px; /* 3D 효과 */
-            margin: 0; padding: 0; border: none;
-            flex-shrink: 0; position: relative;
-            z-index: 1; /* 기본 z-index */
+        .screen { display: none; animation: fadeIn 0.5s ease; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* [레이아웃] 좌우 2단 분할 */
+        .dashboard-layout { display: flex; flex-direction: column; gap: 40px; }
+        @media (min-width: 1024px) {
+            .dashboard-layout { flex-direction: row; align-items: flex-start; }
+            .left-panel { flex: 2; } 
+            .right-panel { flex: 1; position: sticky; top: 20px; min-width: 300px;} 
         }
 
-        /* 호버 시 확대 및 최상단 노출 */
-        .slot:hover { 
-            z-index: 100; 
+        h2, h3 { margin-top: 0; font-weight: 700; letter-spacing: -0.5px; }
+        h2 { font-size: 28px; margin-bottom: 20px; color: #FFECB3; }
+        h3 { font-size: 18px; margin-bottom: 15px; color: #D7CCC8; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px;}
+
+        /* 입력 폼 스타일 */
+        textarea { 
+            width: 100%; height: 120px; padding: 20px; 
+            font-size: 24px; text-align: center; text-transform: uppercase; 
+            background: rgba(0,0,0,0.2); color: #fff;
+            border: 2px dashed rgba(255,255,255,0.2); border-radius: 16px; 
+            resize: none; font-family: monospace; font-weight: bold; outline: none;
+            transition: 0.3s;
         }
+        textarea:focus { border-color: var(--accent-green); background: rgba(0,0,0,0.3); }
+
+        input[type="datetime-local"], input[type="text"] { 
+            width: 100%; padding: 15px; 
+            border-radius: 12px; border: none; 
+            background: #fff; font-size: 16px; margin-bottom: 20px; 
+            font-family: inherit;
+        }
+
+        button { 
+            width: 100%; padding: 18px; 
+            background-color: var(--accent-green); color: white; 
+            border: none; border-radius: 12px; 
+            font-size: 18px; font-weight: bold; cursor: pointer; 
+            transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        button:disabled { background: #777; cursor: not-allowed; transform: none; }
+        
+        button.final { background-color: var(--accent-red); margin-top: 20px; }
+        button.secondary { background-color: #6D4C41; width: auto; font-size: 14px; padding: 12px 20px;}
+
+        /* [수정] 라이브 캔버스 그리드 (잘림 방지) */
+        .grid-box { 
+            background: rgba(0,0,0,0.2); 
+            padding: 30px; 
+            border-radius: 20px; 
+            /* Flex Wrap으로 변경하여 줄바꿈 허용 -> 잘림 해결 */
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            width: 100%; min-height: 200px;
+            overflow: visible; /* 자식 요소(확대된 카드)가 잘리지 않게 함 */
+        }
+        
+        /* 카드 슬롯 스타일 */
+        .slot { 
+            width: 80px; height: 80px; 
+            position: relative; perspective: 1000px; z-index: 1; cursor: pointer;
+        }
+        .slot:hover { z-index: 100; } /* 호버 시 맨 위로 */
 
         .flip-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 쫀득한 느낌 */
-            transform-style: preserve-3d;
+            position: relative; width: 100%; height: 100%;
+            text-align: center; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d; border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        /* 호버 시 뒤집기 + 확대 */
-        .slot:hover .flip-inner {
-            transform: rotateY(180deg) scale(2.2); /* 2.2배 확대 */
-            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-        }
+        
+        /* 호버 효과 */
+        .slot:hover .flip-inner { transform: rotateY(180deg) scale(2.5); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
         .flip-front, .flip-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
+            border-radius: 10px; overflow: hidden;
         }
 
-        /* 앞면 (이미지) */
-        .flip-front {
-            background-color: #d7ccc8;
-        }
-        .flip-front img { 
-            width: 100%; height: 100%; object-fit: cover; 
-        }
-        
-        /* [디자인] 니트 질감 오버레이 */
-        .card-texture::after {
-            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
-            background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
-            background-size: 3px 3px;
-            pointer-events: none;
-        }
+        .flip-front { background: var(--card-base); }
+        .flip-front img { width: 100%; height: 100%; object-fit: cover; }
+        .flip-front.empty { background: transparent; border: 2px dashed rgba(255,255,255,0.1); }
 
-        /* 뒷면 (편지) */
         .flip-back {
-            background-color: #fffdf5;
-            color: #333;
-            transform: rotateY(180deg);
-            border: 2px solid #ff80ab;
-            border-radius: 4px;
-            padding: 5px;
-            flex-direction: column;
-            font-size: 6px; /* 매우 작게 시작 (확대되면 커짐) */
-            line-height: 1.2;
-            text-align: center;
+            background: #FFF8E1; color: #333; transform: rotateY(180deg);
+            padding: 5px; flex-direction: column; 
+            border: 2px solid var(--accent-red);
         }
-        .flip-back strong { color: #d63384; font-size: 7px; display: block; margin-bottom: 2px; }
-        .msg-content-preview { word-break: break-all; white-space: pre-wrap; height: 100%; overflow: hidden; display: flex; align-items: center;}
+        .flip-back strong { font-size: 6px; color: var(--accent-red); display: block; margin-bottom: 2px; }
+        .flip-back .msg { font-size: 5px; line-height: 1.2; word-break: break-all; }
 
-        /* 빈 슬롯 */
-        .slot.empty .flip-inner { box-shadow: none; }
-        .slot.empty .flip-front { 
-            background: transparent; border: 1px dashed #666; opacity: 0.2; 
-        }
+        /* 결과 영역 (초기엔 숨김) */
+        #result-wrapper { display: none; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 20px; text-align: center; margin-top: 30px; animation: fadeIn 0.5s; border: 1px solid rgba(255,255,255,0.1); }
+        #final-img { max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 5px solid #fff; }
 
-        #link-box { margin-bottom: 10px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
-        a { color: #69f0ae; text-decoration: none; }
+        /* 우측 패널 요소 */
+        .info-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 20px; }
+        .link-text { color: #81C784; font-family: monospace; word-break: break-all; font-size: 13px; margin-top: 5px; display: block; text-decoration: none;}
+        
+        #message-list { max-height: 400px; overflow-y: auto; }
+        .msg-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+        .msg-item img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--card-base); }
+        .msg-info { text-align: left; }
+        .msg-user { font-weight: bold; color: #FFECB3; font-size: 14px; }
+        .msg-body { font-size: 13px; color: #ddd; margin-top: 3px; }
 
-        #message-list { margin-top: 20px; text-align: left; max-height: 500px; overflow-y: auto; padding-right: 5px; }
-        .msg-card { background: #444; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; gap: 15px; align-items: center; border: 1px solid #555; }
-        .msg-img { width: 50px; height: 50px; background: #d7ccc8; border-radius: 8px; object-fit: contain; border: 1px solid #ddd; flex-shrink: 0; }
-        .msg-content { flex: 1; min-width: 0; }
-        .msg-name { font-weight: bold; color: #69f0ae; font-size: 14px; margin-bottom: 3px; }
-        .msg-text { font-size: 13px; color: #eee; background: #2a2a2a; padding: 8px; border-radius: 8px; word-wrap: break-word; line-height: 1.4;}
-        
-        #result-area { margin-top: 20px; display: none; background: #222; padding: 20px; border-radius: 16px; border: 2px solid #444; text-align: center;}
-        
-        #final-img { 
-            max-width: 100%; 
-            width: auto; 
-            height: auto; 
-            border-radius: 8px; 
-            border: 1px solid #555; 
-            display: inline-block;
-        }
-        
-        .rejoin-area { margin-top: 40px; border-top: 1px solid #555; padding-top: 20px; }
-        .rejoin-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
     </style>
 </head>
 <body>
     <div class="container">
-        
-        <div id="screen-setup" class="screen active" style="max-width: 600px; margin: 0 auto;">
-            <h2>🎨 방 만들기</h2>
-            <textarea id="TextInput" placeholder="HELLO" maxlength="50" oninput="handleInput()"></textarea>
-            <input type="datetime-local" id="TimeInput">
-            <div id="preview-box" class="grid-box" style="align-items: center; min-height: 100px;"></div> 
-            <button onclick="createRoom()">이대로 방 생성</button>
+        <div id="screen-setup" class="screen active">
+            <h2 style="text-align: center;">🧶 카드 뜨개질 방 만들기</h2>
+            <div style="max-width: 500px; margin: 0 auto;">
+                <p style="text-align: center; color:#aaa; margin-bottom:20px;">친구들이 채워줄 문구를 입력하세요</p>
+                <textarea id="TextInput" placeholder="HELLO" maxlength="30" oninput="handleInput()"></textarea>
+                
+                <p style="text-align: left; margin-bottom: 5px; font-weight: bold; color:#D7CCC8;">오픈 시간 (D-Day)</p>
+                <input type="datetime-local" id="TimeInput">
+                
+                <div id="preview-box" class="grid-box" style="margin: 20px 0; min-height: 100px;"></div> 
+                
+                <button onclick="createRoom()">이대로 방 생성하기</button>
 
-            <div class="rejoin-area">
-                <p style="color:#aaa; font-size:14px;">혹시 만들었던 방이 있나요?</p>
-                <div class="rejoin-row">
-                    <input type="text" id="RejoinId" class="rejoin-input" placeholder="방 ID 입력">
-                    <button class="secondary" onclick="manualRejoin()">이어하기</button>
+                <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center;">
+                    <span style="color:#aaa; font-size: 14px;">기존 방으로 돌아가기</span>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                        <input type="text" id="RejoinId" placeholder="Room ID" style="width: 150px; margin:0; text-align: center;">
+                        <button class="secondary" onclick="manualRejoin()">입장</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="screen-dashboard" class="screen">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <div style="text-align: left;">
-                    <h2 style="margin:0; white-space: nowrap;">📡 실시간 현황</h2>
-                    <div style="font-size:14px; color:#aaa; margin-top:5px;">Room ID: <span id="display-room-id" style="color:#69f0ae; font-weight:bold;"></span></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 30px;">
+                <div>
+                    <h2 style="margin:0;">🧶 <span id="room-id-display" style="color:#FFECB3;"></span></h2>
+                    <span id="d-day-badge" style="background:#C62828; padding:3px 8px; border-radius:5px; font-size:12px; font-weight:bold;">D-Day 설정됨</span>
                 </div>
-                <button class="home-btn" onclick="goHome()">🏠 새 방 만들기</button>
+                <button class="secondary" onclick="goHome()">🏠 홈으로</button>
             </div>
 
             <div class="dashboard-layout">
                 <div class="left-panel">
-                    <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스 (마우스를 올려보세요!)</h3>
+                    <h3>🖼️ 라이브 캔버스 (마우스를 올려보세요!)</h3>
                     <div id="live-grid" class="grid-box"></div>
-                    <div id="result-area">
-                        <h3 style="margin: 10px 0; color: #ffeb3b;">🎉 완성된 카드</h3>
-                        <img id="final-img" src="" alt="결과 이미지">
+
+                    <div id="result-wrapper">
+                        <h3>🎉 완성된 니트 카드</h3>
+                        <img id="final-img" src="" alt="생성된 카드">
+                        <div style="margin-top: 15px;">
+                            <button class="secondary" onclick="downloadImg()">이미지 다운로드 💾</button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="right-panel">
-                    <div id="link-box">
-                        <div style="color:#aaa; font-size:12px; margin-bottom:5px;">친구 초대 링크 👇</div>
-                        <a id="share-link" href="#" target="_blank">링크 생성 중...</a>
+                    <div class="info-card">
+                        <h3>🔗 친구 초대</h3>
+                        <div style="font-size: 13px; color:#aaa;">아래 링크를 친구에게 보내주세요</div>
+                        <a id="share-link" href="#" target="_blank" class="link-text">링크 생성 중...</a>
+                        <button class="secondary" style="margin-top: 10px; width: 100%;" onclick="copyLink()">링크 복사하기</button>
                     </div>
 
-                    <button class="final" onclick="makeFinalCard()">🎁 최종 카드 생성 & 저장</button>
-                    <p style="font-size:12px; color:#aaa; margin-top:5px; margin-bottom: 30px;">* 친구들이 다 그리면 눌러주세요</p>
+                    <div class="info-card">
+                        <h3>💌 도착한 메시지</h3>
+                        <div id="message-list">
+                            <div style="text-align:center; color:#666; padding: 20px;">아직 도착한 편지가 없습니다.</div>
+                        </div>
+                    </div>
 
-                    <h3 style="border-top: 1px solid #555; padding-top: 20px;">📩 도착한 편지함</h3>
-                    <div id="message-list">
-                        <div style="color:#888; text-align:center;">아직 도착한 편지가 없습니다.</div>
+                    <div class="info-card" style="border: 1px solid var(--accent-red);">
+                        <h3>🎁 최종 카드</h3>
+                        <p style="font-size: 13px; color:#ddd; margin-bottom: 15px;">
+                            친구들이 모두 참여했거나<br>
+                            D-Day가 되면 생성해주세요.
+                        </p>
+                        <button class="final" id="make-btn" onclick="makeFinalCard()">지금 카드 생성하기</button>
                     </div>
                 </div>
             </div>
@@ -206,232 +228,242 @@
     </div>
 
     <script>
-        let currentColumns = 5;
         let myRoomId = null;
+        let openTime = null;
 
+        // URL 파라미터 확인 (재입장)
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('room');
-            if (roomId) { rejoinRoom(roomId); }
+            if (roomId) rejoinRoom(roomId);
         };
 
-        function goHome() {
-            if(confirm("현재 방에서 나가시겠습니까?")) {
-                window.location.href = "/host";
+        // --- 기능 함수 ---
+
+        function handleInput() {
+            const ta = document.getElementById('TextInput');
+            // 영문 대문자와 공백만 허용
+            ta.value = ta.value.toUpperCase().replace(/[^A-Z\n ]/g, "");
+            updatePreview(ta.value);
+        }
+
+        function updatePreview(text) {
+            const box = document.getElementById('preview-box');
+            box.innerHTML = '';
+            // 간단 프리뷰 (플립 없이)
+            for(let char of text) {
+                if(char === '\n') {
+                    const br = document.createElement('div');
+                    br.style.width = '100%'; 
+                    box.appendChild(br);
+                    continue;
+                }
+                const div = document.createElement('div');
+                div.className = 'slot';
+                div.style.width = '40px'; div.style.height = '40px'; // 미리보기는 작게
+                div.style.background = (char === ' ') ? 'transparent' : '#D7CCC8';
+                div.style.border = (char === ' ') ? '1px dashed #666' : 'none';
+                div.style.borderRadius = '5px';
+                div.style.display = 'flex'; div.style.alignItems='center'; div.style.justifyContent='center';
+                div.style.color = '#3e2723'; div.style.fontWeight='bold';
+                div.innerText = char;
+                box.appendChild(div);
             }
         }
 
-        function handleInput() {
-            const textarea = document.getElementById('TextInput');
-            let val = textarea.value.toUpperCase().replace(/[^A-Z\n ]/g, "");
-            textarea.value = val;
-            updateGrid(val, 'preview-box');
-        }
+        async function createRoom() {
+            const text = document.getElementById('TextInput').value;
+            const time = document.getElementById('TimeInput').value;
+            if(!text.trim() || !time) return alert("문구와 시간을 모두 입력해주세요!");
 
-        function updateGrid(text, elementId) {
-            const box = document.getElementById(elementId);
-            if(!box) return;
-            box.innerHTML = ''; 
+            // 줄바꿈 기준으로 최대 길이 계산 (직사각형 모양 유지 위해 패딩)
             const lines = text.split('\n');
             let maxLen = 0;
             lines.forEach(l => maxLen = Math.max(maxLen, l.length));
-            if(elementId === 'preview-box') currentColumns = maxLen;
-
-            lines.forEach(line => {
-                if(line.length === 0) return;
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'row';
-                for (let char of line) {
-                    // 프리뷰용 간단한 슬롯 (플립 없음)
-                    const slotDiv = document.createElement('div');
-                    slotDiv.className = (char === " ") ? 'slot empty' : 'slot';
-                    if(char !== " ") {
-                        slotDiv.innerHTML = `<div class="flip-inner"><div class="flip-front" style="background:#555; color:#aaa; font-size:24px; font-weight:bold;">${char}</div></div>`;
-                    } else {
-                        slotDiv.innerHTML = `<div class="flip-inner"><div class="flip-front"></div></div>`;
-                    }
-                    rowDiv.appendChild(slotDiv);
-                }
-                box.appendChild(rowDiv);
-            });
-        }
-
-        async function createRoom() {
-            const rawText = document.getElementById('TextInput').value;
-            const timeVal = document.getElementById('TimeInput').value;
-            if(!rawText.trim() || !timeVal) return alert("문구와 시간을 모두 입력해주세요!");
-
-            const lines = rawText.toUpperCase().split('\n');
-            let maxLen = 0;
-            lines.forEach(l => maxLen = Math.max(maxLen, l.length));
             let paddedText = "";
-            lines.forEach(line => { paddedText += line.padEnd(maxLen, " "); });
+            lines.forEach(l => paddedText += l.padEnd(maxLen, " "));
 
-            const res = await fetch('/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: paddedText, columns: maxLen, open_time: timeVal })
-            });
-            const data = await res.json();
-            rejoinRoom(data.room_id);
+            try {
+                const res = await fetch('/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: paddedText, columns: maxLen, open_time: time })
+                });
+                const data = await res.json();
+                rejoinRoom(data.room_id);
+            } catch(e) { alert("오류 발생"); }
         }
 
         function manualRejoin() {
-            const inputId = document.getElementById('RejoinId').value.trim();
-            if(!inputId) return alert("방 ID를 입력해주세요!");
-            rejoinRoom(inputId);
+            const rid = document.getElementById('RejoinId').value.trim();
+            if(rid) rejoinRoom(rid);
         }
 
         async function rejoinRoom(roomId) {
             myRoomId = roomId;
-            const res = await fetch(`/status/${myRoomId}`);
-            const data = await res.json();
-            
-            if(data.error) {
-                alert("존재하지 않는 방입니다.");
-                window.history.pushState({}, '', '/host');
-                return;
-            }
+            try {
+                const res = await fetch(`/status/${roomId}`);
+                const data = await res.json();
+                if(data.error) {
+                    alert("존재하지 않는 방입니다.");
+                    window.history.pushState({}, '', '/host');
+                    return;
+                }
 
-            if(data.columns) currentColumns = data.columns;
+                // 화면 전환
+                document.getElementById('screen-setup').classList.remove('active');
+                document.getElementById('screen-dashboard').classList.add('active');
+                
+                // 정보 업데이트
+                openTime = new Date(data.open_time);
+                document.getElementById('room-id-display').innerText = `ROOM: ${roomId}`;
+                
+                const dDayStr = openTime.toLocaleString([], {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+                document.getElementById('d-day-badge').innerText = `OPEN: ${dDayStr}`;
 
-            document.getElementById('screen-setup').classList.remove('active');
-            document.getElementById('screen-dashboard').classList.add('active');
-            document.getElementById('display-room-id').innerText = myRoomId;
-            
-            const newUrl = window.location.pathname + "?room=" + myRoomId;
-            window.history.pushState({path: newUrl}, '', newUrl);
-            
-            const shareUrl = window.location.origin + "/?room=" + myRoomId;
-            document.getElementById('share-link').href = shareUrl;
-            document.getElementById('share-link').innerText = shareUrl;
-            
-            renderLiveGrid(data.slots);
-            updateMessageList(data.slots);
+                const url = window.location.origin + "/?room=" + roomId;
+                const linkEl = document.getElementById('share-link');
+                linkEl.href = url; linkEl.innerText = url;
+                window.history.pushState({}, '', '/host?room='+roomId);
 
-            const imgCheck = await fetch(`/result_card/${myRoomId}`);
-            if(imgCheck.ok) {
-                 document.getElementById('final-img').src = `/result_card/${myRoomId}?t=` + new Date().getTime();
-                 document.getElementById('result-area').style.display = 'block';
-            }
+                // 라이브 렌더링
+                renderLiveGrid(data.slots);
+                updateMessageList(data.slots);
 
-            setInterval(fetchLiveStatus, 2000);
+                // 이미 생성된 카드가 있는지 확인
+                checkFinalCard();
+
+                // 주기적 업데이트 시작
+                setInterval(() => fetchLiveStatus(), 3000);
+
+            } catch(e) { console.error(e); alert("방 정보를 불러오지 못했습니다."); }
         }
 
         async function fetchLiveStatus() {
             if(!myRoomId) return;
-            try {
-                const res = await fetch(`/status/${myRoomId}`);
-                const data = await res.json();
-                if(data.error) return; 
+            const res = await fetch(`/status/${myRoomId}`);
+            const data = await res.json();
+            if(!data.error) {
                 renderLiveGrid(data.slots);
                 updateMessageList(data.slots);
-            } catch(e) {}
+            }
         }
 
         function renderLiveGrid(slots) {
-            const liveBox = document.getElementById('live-grid');
-            liveBox.innerHTML = '';
-            
-            liveBox.style.display = 'flex';
-            liveBox.style.flexDirection = 'column';
-            liveBox.style.alignItems = 'center';
+            const box = document.getElementById('live-grid');
+            box.innerHTML = '';
 
-            let currentRow = document.createElement('div');
-            currentRow.className = 'row';
-            
-            slots.forEach((slot, index) => {
-                if (index > 0 && index % currentColumns === 0) {
-                    liveBox.appendChild(currentRow);
-                    currentRow = document.createElement('div');
-                    currentRow.className = 'row';
-                }
-                const slotDiv = document.createElement('div');
+            slots.forEach(slot => {
+                const el = document.createElement('div');
+                el.className = 'slot';
                 
-                // 공백 처리
-                if (slot.char === " ") {
-                    slotDiv.className = 'slot empty';
-                    slotDiv.innerHTML = `<div class="flip-inner"><div class="flip-front"></div></div>`;
+                // 빈 칸
+                if(slot.char === ' ') {
+                    // 투명 공간 유지
+                    el.style.visibility = 'hidden'; 
                 } else {
-                    slotDiv.className = 'slot';
+                    // 카드 내용
+                    let frontContent = '';
+                    let backContent = `<div style="color:#aaa">작성 전</div>`;
+
                     if(slot.is_filled) {
-                        const time = new Date().getTime();
-                        // [핵심] 플립 카드 구조 생성
-                        slotDiv.innerHTML = `
-                            <div class="flip-inner">
-                                <div class="flip-front card-texture">
-                                    <img src="/img/${myRoomId}/${slot.position}?t=${time}">
-                                </div>
-                                <div class="flip-back">
-                                    <strong>From. ${slot.user || '익명'}</strong>
-                                    <div class="msg-content-preview">${slot.message || '메시지가 없습니다.'}</div>
-                                </div>
-                            </div>
+                        const t = new Date().getTime();
+                        frontContent = `<img src="/img/${myRoomId}/${slot.position}?t=${t}">`;
+                        backContent = `
+                            <strong>From. ${slot.user}</strong>
+                            <div class="msg">${slot.message}</div>
                         `;
                     } else {
-                        // 아직 안 채워짐
-                        slotDiv.innerHTML = `
-                            <div class="flip-inner">
-                                <div class="flip-front" style="background:#555; display:flex; align-items:center; justify-content:center; color:#888; font-weight:bold; font-size:24px;">
-                                    ${slot.char}
-                                </div>
-                                <div class="flip-back">
-                                    <div style="color:#aaa;">대기 중...</div>
-                                </div>
-                            </div>
-                        `;
+                        frontContent = `<div style="font-size:24px; font-weight:bold; color:#8D6E63;">${slot.char}</div>`;
                     }
+
+                    el.innerHTML = `
+                        <div class="flip-inner">
+                            <div class="flip-front ${slot.is_filled?'':'empty'}">${frontContent}</div>
+                            <div class="flip-back">${backContent}</div>
+                        </div>
+                    `;
                 }
-                currentRow.appendChild(slotDiv);
+                box.appendChild(el);
             });
-            liveBox.appendChild(currentRow);
         }
 
         function updateMessageList(slots) {
             const list = document.getElementById('message-list');
-            const filledSlots = slots.filter(s => s.is_filled && s.user);
-
-            if (filledSlots.length === 0) {
-                list.innerHTML = '<div style="color:#888; text-align:center;">아직 도착한 편지가 없습니다.</div>';
+            const filled = slots.filter(s => s.is_filled);
+            
+            if(filled.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#666; padding: 20px;">아직 도착한 편지가 없습니다.</div>';
                 return;
             }
+
             list.innerHTML = '';
-            filledSlots.forEach(slot => {
-                const time = new Date().getTime();
-                const item = document.createElement('div');
-                item.className = 'msg-card';
-                item.innerHTML = `
-                    <img src="/img/${myRoomId}/${slot.position}?t=${time}" class="msg-img">
-                    <div class="msg-content">
-                        <div class="msg-name">${slot.user} <span class="msg-char">${slot.char} 담당</span></div>
-                        <div class="msg-text">${slot.message}</div>
+            filled.forEach(s => {
+                const t = new Date().getTime();
+                const div = document.createElement('div');
+                div.className = 'msg-item';
+                div.innerHTML = `
+                    <img src="/img/${myRoomId}/${s.position}?t=${t}">
+                    <div class="msg-info">
+                        <div class="msg-user">${s.user} (${s.char})</div>
+                        <div class="msg-body">${s.message}</div>
                     </div>
                 `;
-                list.appendChild(item);
+                list.appendChild(div);
             });
         }
-        
+
         async function makeFinalCard() {
             if(!myRoomId) return;
-            const btn = document.querySelector('button.final');
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ 생성 중...";
-            btn.disabled = true;
+            const now = new Date();
+            
+            // D-Day 체크 (경고만 하고 진행은 가능하게 함)
+            if(now < openTime) {
+                if(!confirm("아직 오픈 시간이 되지 않았습니다.\n지금 생성하시겠습니까? (친구들이 다 그렸는지 확인하세요!)")) return;
+            }
 
-            await fetch(`/make-card/${myRoomId}`, { method: 'POST' });
+            const btn = document.getElementById('make-btn');
+            btn.disabled = true; btn.innerText = "⏳ 니트 짜는 중...";
+
+            try {
+                await fetch(`/make-card/${myRoomId}`, { method: 'POST' });
+                await checkFinalCard(); // 생성 후 이미지 로드 시도
+                alert("카드가 완성되었습니다! 아래에서 확인하세요.");
+            } catch(e) { alert("생성 실패"); }
             
-            const resultArea = document.getElementById('result-area');
-            const resultImg = document.getElementById('final-img');
-            const time = new Date().getTime();
-            
-            resultImg.src = `/result_card/${myRoomId}?t=` + time;
-            
-            resultArea.style.display = 'block';
-            resultArea.scrollIntoView({ behavior: 'smooth' });
-            
-            alert("카드 생성 완료!");
-            btn.innerText = originalText;
-            btn.disabled = false;
+            btn.disabled = false; btn.innerText = "🎁 최종 카드 생성하기";
+        }
+
+        async function checkFinalCard() {
+            // 이미지가 실제로 존재하는지 체크
+            const res = await fetch(`/result_card/${myRoomId}`);
+            if(res.ok) {
+                const wrapper = document.getElementById('result-wrapper');
+                const img = document.getElementById('final-img');
+                img.src = `/result_card/${myRoomId}?t=` + new Date().getTime();
+                wrapper.style.display = 'block'; // 숨겨뒀던 영역 표시
+                
+                // 스크롤 이동
+                wrapper.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function copyLink() {
+            const url = document.getElementById('share-link').href;
+            navigator.clipboard.writeText(url).then(() => alert("초대 링크가 복사되었습니다!"));
+        }
+
+        function downloadImg() {
+            const src = document.getElementById('final-img').src;
+            if(!src) return;
+            const a = document.createElement('a');
+            a.href = src;
+            a.download = `Knitting_Card_${myRoomId}.jpg`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function goHome() {
+            if(confirm("첫 화면으로 돌아가시겠습니까?")) window.location.href = "/host";
         }
     </script>
 </body>
