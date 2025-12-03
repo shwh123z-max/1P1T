@@ -6,9 +6,7 @@ from typing import List, Optional, Dict
 from PIL import Image
 from datetime import datetime
 import base64
-import io
 import os
-import glob
 import uuid
 
 app = FastAPI()
@@ -69,19 +67,11 @@ def create_room(request: CreateRequest):
 
 @app.get("/status/{room_id}")
 def check_status(room_id: str):
-    if room_id not in rooms_db:
-        return {"error": "존재하지 않는 방입니다."}
-    
+    if room_id not in rooms_db: return {"error": "존재하지 않는 방입니다."}
     room = rooms_db[room_id]
     now = datetime.now().strftime("%Y-%m-%dT%H:%M")
     is_open = now >= room.open_time 
-    
-    return {
-        "is_open": is_open, 
-        "open_time": room.open_time, 
-        "slots": room.slots,
-        "columns": room.columns 
-    }
+    return { "is_open": is_open, "open_time": room.open_time, "slots": room.slots, "columns": room.columns }
 
 @app.get("/")
 def read_root(): return FileResponse("index.html")
@@ -91,80 +81,63 @@ def read_host(): return FileResponse("create.html")
 @app.get("/img/{room_id}/{position}")
 def get_image(room_id: str, position: int):
     file_path = f"img_{room_id}_{position}.png"
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
+    if os.path.exists(file_path): return FileResponse(file_path)
     return {"error": "Image not found"}
 
 @app.get("/result_card/{room_id}")
 def get_result_card(room_id: str):
     file_path = f"result_{room_id}.jpg"
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
+    if os.path.exists(file_path): return FileResponse(file_path)
     return {"error": "Not generated yet"}
 
 @app.get("/og-image.png")
 def get_og_image():
-    if os.path.exists("og-image.png"):
-        return FileResponse("og-image.png")
+    if os.path.exists("og-image.png"): return FileResponse("og-image.png")
     return {"error": "No image"}
 
 @app.post("/reserve/{room_id}")
 def reserve_slot(room_id: str, request: JoinRequest):
     if room_id not in rooms_db: return {"status": "ERROR", "message": "방이 없습니다."}
     room = rooms_db[room_id]
-
     now = datetime.now().strftime("%Y-%m-%dT%H:%M")
-    if now >= room.open_time:
-        return {"status": "TIME_OVER", "message": "⏰ 마감되었습니다."}
+    if now >= room.open_time: return {"status": "TIME_OVER", "message": "⏰ 마감되었습니다."}
     
-    # 1. 본인이 이미 예약한 슬롯이 있는지 확인
     for slot in room.slots:
         if slot.reserved_by == request.user_name and not slot.is_filled:
              return {"status": "SUCCESS", "assigned_char": slot.char}
-    # 2. 빈 슬롯 예약
     for slot in room.slots:
         if not slot.is_filled and slot.reserved_by is None:
             slot.reserved_by = request.user_name
             return {"status": "SUCCESS", "assigned_char": slot.char}
-            
     return {"status": "FULL", "message": "자리가 꽉 찼습니다."}
 
 @app.post("/join/{room_id}")
 def join_room(room_id: str, request: JoinRequest):
     if room_id not in rooms_db: return {"status": "ERROR", "message": "방이 없습니다."}
     room = rooms_db[room_id]
-
+    
     now = datetime.now().strftime("%Y-%m-%dT%H:%M")
-    if now >= room.open_time:
-        return {"status": "TIME_OVER", "message": "⏰ 마감되었습니다."}
+    if now >= room.open_time: return {"status": "TIME_OVER", "message": "⏰ 마감되었습니다."}
     
     target_slot = None
-    # 1. 내 예약 확인
     for slot in room.slots:
         if slot.reserved_by == request.user_name and not slot.is_filled:
-            target_slot = slot
-            break
-    
-    # 2. 예약 없으면 빈 자리 찾기
+            target_slot = slot; break
     if not target_slot:
         for slot in room.slots:
             if not slot.is_filled and slot.reserved_by is None:
-                target_slot = slot
-                break
+                target_slot = slot; break
 
     if target_slot:
         target_slot.user = request.user_name
         target_slot.message = request.message
         target_slot.is_filled = True
         try:
-            # 이미지 저장
             header, encoded = request.image_data.split(",", 1)
             data = base64.b64decode(encoded)
             file_name = f"img_{room_id}_{target_slot.position}.png"
-            with open(file_name, "wb") as f:
-                f.write(data)
-        except Exception as e:
-            print(f"저장 실패: {e}")
+            with open(file_name, "wb") as f: f.write(data)
+        except Exception as e: print(f"저장 실패: {e}")
         return {"status": "SUCCESS"}
             
     return {"status": "FULL", "message": "자리 없음"}
@@ -178,53 +151,43 @@ def make_card(room_id: str):
     total_slots = len(room.slots)
     rows = (total_slots // cols) + (1 if total_slots % cols else 0)
     
-    # [디자인 설정]
-    slot_size = 120    # 이미지 크기
-    gap = 10           # 이미지 사이 간격
-    margin = 50        # 전체 여백
+    # [디자인 설정] 니트 스타일
+    slot_size = 120    
+    gap = 0            # 니트 조각처럼 딱 붙이기 위해 간격을 0으로!
+    margin = 40        
     
-    # 캔버스 크기 계산
-    width = (cols * slot_size) + ((cols - 1) * gap) + (margin * 2)
-    height = (rows * slot_size) + ((rows - 1) * gap) + (margin * 2)
-    
-    # 최소 크기 보장 (너무 작으면 보기 싫음)
+    width = (cols * slot_size) + (margin * 2)
+    height = (rows * slot_size) + (margin * 2)
     width = max(width, 600)
     height = max(height, 400)
 
-    # 배경색: 따뜻한 미색 (Ivory)
-    bg_color = (253, 251, 247) 
+    # HTML의 원단 배경색(#d7ccc8)과 비슷한 색상 사용
+    bg_color = (215, 204, 200) 
     canvas = Image.new('RGB', (width, height), color=bg_color)
     
-    # 중앙 정렬을 위해 실제 콘텐츠가 차지하는 영역 계산
-    content_w = (cols * slot_size) + ((cols - 1) * gap)
+    content_w = (cols * slot_size)
     start_x = (width - content_w) // 2
     start_y = margin
 
     for slot in room.slots:
-        if slot.char == " ": continue # 공백은 건너뜀
-        
+        if slot.char == " ": continue 
         col_idx = slot.position % cols
         row_idx = slot.position // cols
         
-        x = start_x + (col_idx * (slot_size + gap))
-        y = start_y + (row_idx * (slot_size + gap))
+        x = start_x + (col_idx * slot_size)
+        y = start_y + (row_idx * slot_size)
         
         try:
             if slot.is_filled and slot.user:
                 img_path = f"img_{room_id}_{slot.position}.png"
                 if os.path.exists(img_path):
-                    # 픽셀 아트의 선명함을 살리기 위해 리사이징 시 nearest 옵션 고려 가능
-                    # 여기서는 부드럽게 줄임
                     user_img = Image.open(img_path).convert("RGBA")
-                    user_img = user_img.resize((slot_size, slot_size))
-                    
-                    # 흰 배경이 있는 투명 이미지를 위해 합칠 때 마스크 사용
-                    # (만약 배경이 투명하다면 바로 paste)
+                    # 니트 질감을 살리기 위해 고품질 리사이징
+                    user_img = user_img.resize((slot_size, slot_size), Image.Resampling.LANCZOS)
                     canvas.paste(user_img, (x, y), mask=user_img)
         except Exception as e: 
-            print(f"이미지 병합 오류 ({slot.position}): {e}")
+            print(f"이미지 병합 오류: {e}")
             
     out_file = f"result_{room_id}.jpg"
-    # JPEG 품질을 높여서 노이즈 감소
     canvas.save(out_file, quality=95)
     return {"message": "완료"}
