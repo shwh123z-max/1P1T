@@ -153,9 +153,10 @@ def make_card(room_id: str):
     
     # [디자인 설정] 니트 스타일
     slot_size = 120    
-    gap = 0            # 니트 조각처럼 딱 붙이기 위해 간격을 0으로!
+    gap = 0            
     margin = 40        
     
+    # 캔버스 크기 계산 (최소 크기 확보)
     width = (cols * slot_size) + (margin * 2)
     height = (rows * slot_size) + (margin * 2)
     width = max(width, 600)
@@ -182,7 +183,6 @@ def make_card(room_id: str):
                 img_path = f"img_{room_id}_{slot.position}.png"
                 if os.path.exists(img_path):
                     user_img = Image.open(img_path).convert("RGBA")
-                    # 니트 질감을 살리기 위해 고품질 리사이징
                     user_img = user_img.resize((slot_size, slot_size), Image.Resampling.LANCZOS)
                     canvas.paste(user_img, (x, y), mask=user_img)
         except Exception as e: 
