@@ -9,22 +9,33 @@
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { box-sizing: border-box; } 
 
-        body { font-family: 'Pretendard', sans-serif; background-color: #3e2723; /* 따뜻한 갈색 배경 */ display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; perspective: 1000px; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #3e2723; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; perspective: 1000px; }
 
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; background: #3e2723; transition: 0.3s; z-index: 100;}
         .hidden { display: none !important; }
 
-        .scene { width: 340px; height: 500px; position: relative; display: none; z-index: 50; margin-bottom: 60px; }
+        /* 결과 화면 이미지 비율 고정 (짜부 해결) */
+        #final-screen img { 
+            max-width: 100%; 
+            max-height: 55vh; 
+            width: auto; /* 가로 비율 자동 */
+            height: auto; /* 세로 비율 자동 */
+            object-fit: contain; /* 비율 유지하며 상자 안에 맞춤 */
+            border-radius: 5px; 
+            border: 2px solid #5d4037; 
+        }
+
+        .scene { width: 340px; height: 520px; /* 툴바 공간 확보를 위해 높이 증가 */ position: relative; display: none; z-index: 50; margin-bottom: 60px; }
         .card { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 15px; }
         .card.is-flipped { transform: rotateY(180deg); }
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; overflow: hidden; background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         
-        .card-front { pointer-events: auto; z-index: 2; display: flex; flex-direction: column; background: #d7ccc8; } /* 원단 색상 */
+        .card-front { pointer-events: auto; z-index: 2; display: flex; flex-direction: column; background: #d7ccc8; } 
         .card-back { pointer-events: none; z-index: 1; transform: rotateY(180deg); background: #fffdf5; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; text-align: center; color: #333; }
         .card.is-flipped .card-front { pointer-events: none; }
         .card.is-flipped .card-back { pointer-events: auto; }
 
-        .canvas-area { flex: 1; position: relative; cursor: crosshair; overflow: hidden; background: #d7ccc8; /* 캔버스 배경도 원단색 */ }
+        .canvas-area { flex: 1; position: relative; cursor: crosshair; overflow: hidden; background: #d7ccc8; }
         
         .guide-char { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
@@ -34,11 +45,16 @@
         
         canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 10; }
         
-        /* 툴바 스타일 변경 (3색 + 지우개) */
-        .tools { height: 70px; background: #5d4037; display: flex; justify-content: center; align-items: center; gap: 15px; border-top: 4px solid #4e342e; z-index: 20; border-radius: 0 0 15px 15px;}
-        .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);}
+        /* 툴바 스타일 (2단 구성) */
+        .tools { height: 100px; background: #5d4037; display: flex; flex-direction: column; padding: 10px; gap: 8px; border-top: 4px solid #4e342e; z-index: 20; border-radius: 0 0 15px 15px;}
+        .tool-row { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; }
+        
+        .tool-btn { width: 35px; height: 35px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; background: #8d6e63; color: #d7ccc8;}
+        .tool-btn.active { border-color: white; background: #a1887f; color: white; box-shadow: 0 0 5px white; }
+        
+        .color-btn { width: 35px; height: 35px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); cursor: pointer; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;}
         .color-btn.active { transform: scale(1.1); border-color: white; box-shadow: 0 0 10px white; }
-        .trash-btn { background: #8d6e63; color: white; border: 1px solid #a1887f; font-size: 18px; border-radius: 10px; width: 40px; height: 40px;}
+        .trash-btn { background: #6d4c41; color: white; border: 1px solid #8d6e63; font-size: 16px; border-radius: 50%; width: 35px; height: 35px; margin-left: auto;}
 
         textarea { width: 100%; flex: 1; padding: 15px; border: 2px dashed #ccc; background: transparent; font-size: 16px; font-family: inherit; resize: none; border-radius: 10px; margin-bottom: 20px; }
 
@@ -53,7 +69,6 @@
 
         .top-guide { position: absolute; top: -60px; width: 100%; text-align: center; color: #ffecb3; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
-        /* 카카오 버튼 스타일 */
         .kakao-btn { background-color: #FEE500; color: #000; padding: 12px 20px; border-radius: 30px; border: none; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
@@ -75,8 +90,8 @@
 
     <div id="final-screen" class="screen hidden" style="background: #222;">
         <h1 style="color: #ffecb3;">MERRY CHRISTMAS!</h1>
-        <div style="margin: 20px; padding: 10px; background: #3e2723; border-radius: 10px;">
-            <img src="" style="max-width: 100%; max-height: 55vh; border-radius: 5px; border: 2px solid #5d4037;">
+        <div style="margin: 20px; padding: 10px; background: #3e2723; border-radius: 10px; display: flex; justify-content: center;">
+            <img src="" alt="완성된 카드">
         </div>
         
         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
@@ -98,9 +113,17 @@
                     <canvas id="drawingCanvas"></canvas>
                 </div>
                 <div class="tools">
-                    <div class="color-btn active" style="background:#b71c1c" onclick="setColor('#b71c1c', this)"></div> <div class="color-btn" style="background:#2e7d32" onclick="setColor('#2e7d32', this)"></div> <div class="color-btn" style="background:#fff9c4" onclick="setColor('#fff9c4', this)"></div> <div class="color-btn" style="background:#d7ccc8; border: 2px dashed #8d6e63; color:#5d4037" onclick="setColor('eraser', this)">✂️</div>
-                    <div style="flex:1"></div>
-                    <button class="trash-btn" onclick="clearAll()">🗑️</button>
+                    <div class="tool-row" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                        <span style="color:#d7ccc8; font-size:12px;">스티치:</span>
+                        <div class="tool-btn active" onclick="setShape('heart', this)">♥</div>
+                        <div class="tool-btn" onclick="setShape('circle', this)">●</div>
+                        <div class="tool-btn" style="font-size: 14px;" onclick="setShape('v-stitch', this)">∨</div>
+                    </div>
+                    <div class="tool-row">
+                        <span style="color:#d7ccc8; font-size:12px;">색상:</span>
+                        <div class="color-btn active" style="background:#b71c1c" onclick="setColor('#b71c1c', this)"></div> <div class="color-btn" style="background:#2e7d32" onclick="setColor('#2e7d32', this)"></div> <div class="color-btn" style="background:#fff9c4" onclick="setColor('#fff9c4', this)"></div> <div class="tool-btn" style="margin-left: 10px;" onclick="setEraser(this)">✂️ 지우개</div>
+                        <button class="trash-btn" onclick="clearAll()">🗑️</button>
+                    </div>
                 </div>
             </div>
             <div class="card-face card-back">
@@ -117,22 +140,20 @@
     </div>
 
     <script>
-        // [설정] 뜨개질 코 크기 (이걸로 조절)
         const PIXEL_SIZE = 16;  
-        // 원단 구멍 색상 (배경 그리드)
         const FABRIC_DOT_COLOR = "#bcaaa4"; 
         
         let myName = "";
         let isFlipped = false;
         let canvas, ctx, painting = false;
-        let currentColor = "#b71c1c"; // 기본 빨강
+        let currentColor = "#b71c1c"; 
+        let currentShape = "heart"; // 기본 스티치 모양
         let isEraserMode = false;
         let cols, rows;
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
 
-        // 시작 시 카카오 키 로드
         window.onload = function() {
             fetch('/api/config').then(r=>r.json()).then(d=>{
                 if(d.kakao_key) Kakao.init(d.kakao_key);
@@ -193,7 +214,7 @@
             document.getElementById('display-name').innerText = myName;
             
             setTimeout(initCanvas, 100);
-            alert(`[ ${char} ] 모양을 뜨개질해주세요! 🧶`);
+            alert(`[ ${char} ] 모양을 뜨개질해주세요! 🧶\n도구함에서 스티치 모양을 바꿀 수 있어요.`);
         }
 
         function showScreen(id) {
@@ -236,10 +257,8 @@
             cols = Math.floor(canvas.width / PIXEL_SIZE);
             rows = Math.floor(canvas.height / PIXEL_SIZE);
 
-            // 초기 천(Fabric) 패턴 그리기
             drawFabricPattern();
 
-            // 이벤트 바인딩
             canvas.addEventListener('mousedown', startDraw);
             canvas.addEventListener('mouseup', endDraw);
             canvas.addEventListener('mousemove', draw);
@@ -248,7 +267,6 @@
             canvas.addEventListener('touchmove', draw);
         }
 
-        // [핵심] 원단 구멍(Dot) 그리기 - 격자 대신 점을 찍음
         function drawFabricPattern() {
             ctx.fillStyle = FABRIC_DOT_COLOR;
             for (let i = 0; i < cols; i++) {
@@ -256,13 +274,12 @@
                     const cx = i * PIXEL_SIZE + PIXEL_SIZE/2;
                     const cy = j * PIXEL_SIZE + PIXEL_SIZE/2;
                     ctx.beginPath();
-                    ctx.arc(cx, cy, 1.5, 0, Math.PI*2); // 작은 점
+                    ctx.arc(cx, cy, 1.5, 0, Math.PI*2); 
                     ctx.fill();
                 }
             }
         }
 
-        // 특정 칸의 점만 다시 찍기 (지우개질 할 때 사용)
         function restoreDot(c, r) {
             const cx = c * PIXEL_SIZE + PIXEL_SIZE/2;
             const cy = r * PIXEL_SIZE + PIXEL_SIZE/2;
@@ -272,23 +289,35 @@
             ctx.fill();
         }
 
-        // [핵심] 하트(뜨개 코) 그리기 함수
-        function drawHeartShape(ctx, x, y, size, color) {
+        // [도형 그리기 함수들]
+        function drawStitch(ctx, x, y, size, color, shape) {
             ctx.fillStyle = color;
-            const s = size * 0.85; // 칸보다 살짝 작게
+            ctx.strokeStyle = color;
+            const s = size * 0.85;
             const padding = (size - s) / 2;
             const ox = x + padding;
-            const oy = y + padding + (s * 0.1); // 살짝 아래로
+            const oy = y + padding;
 
-            // 하트 그리기 (Bezier Curve)
             ctx.beginPath();
-            const topCurveHeight = s * 0.3;
-            ctx.moveTo(ox + s / 2, oy + topCurveHeight);
-            ctx.bezierCurveTo(ox + s / 2, oy, ox, oy, ox, oy + topCurveHeight);
-            ctx.bezierCurveTo(ox, oy + (s + topCurveHeight) / 2, ox + s / 2, oy + s, ox + s / 2, oy + s);
-            ctx.bezierCurveTo(ox + s / 2, oy + s, ox + s, oy + (s + topCurveHeight) / 2, ox + s, oy + topCurveHeight);
-            ctx.bezierCurveTo(ox + s, oy, ox + s / 2, oy, ox + s / 2, oy + topCurveHeight);
-            ctx.fill();
+            if (shape === 'heart') {
+                const topCurveHeight = s * 0.3;
+                ctx.moveTo(ox + s / 2, oy + topCurveHeight + (s*0.1));
+                ctx.bezierCurveTo(ox + s / 2, oy+(s*0.1), ox, oy+(s*0.1), ox, oy + topCurveHeight + (s*0.1));
+                ctx.bezierCurveTo(ox, oy + (s + topCurveHeight) / 2 + (s*0.1), ox + s / 2, oy + s + (s*0.1), ox + s / 2, oy + s + (s*0.1));
+                ctx.bezierCurveTo(ox + s / 2, oy + s + (s*0.1), ox + s, oy + (s + topCurveHeight) / 2 + (s*0.1), ox + s, oy + topCurveHeight + (s*0.1));
+                ctx.bezierCurveTo(ox + s, oy+(s*0.1), ox + s / 2, oy+(s*0.1), ox + s / 2, oy + topCurveHeight + (s*0.1));
+                ctx.fill();
+            } else if (shape === 'circle') {
+                ctx.arc(ox + s/2, oy + s/2, s/2, 0, Math.PI*2);
+                ctx.fill();
+            } else if (shape === 'v-stitch') {
+                ctx.lineWidth = s * 0.2;
+                ctx.lineCap = 'round';
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(ox + s/2, oy + s);
+                ctx.lineTo(ox + s, oy);
+                ctx.stroke();
+            }
         }
 
         function startDraw(e) { painting = true; draw(e); }
@@ -310,35 +339,56 @@
             const rectX = c * PIXEL_SIZE;
             const rectY = r * PIXEL_SIZE;
 
-            // 이미 그린 영역 깨끗이 지우기 (중복 덧칠 방지)
             ctx.clearRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
 
             if (isEraserMode) {
-                // 지우면 -> 다시 원단 구멍(Dot) 복구
                 restoreDot(c, r);
             } else {
-                // 칠하면 -> 하트 모양 스티치
-                drawHeartShape(ctx, rectX, rectY, PIXEL_SIZE, currentColor);
+                // 선택된 모양으로 그리기
+                drawStitch(ctx, rectX, rectY, PIXEL_SIZE, currentColor, currentShape);
             }
+        }
+
+        // [툴바 컨트롤 함수들]
+        function setShape(shape, btn) {
+            currentShape = shape;
+            isEraserMode = false;
+            updateToolUI(btn, null);
         }
 
         function setColor(color, btn) {
-            // 버튼 스타일 활성화
-            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            currentColor = color;
+            isEraserMode = false;
+            updateToolUI(null, btn);
+        }
 
-            if(color === 'eraser') { 
-                isEraserMode = true; 
-            } else { 
-                isEraserMode = false; 
-                currentColor = color; 
+        function setEraser(btn) {
+            isEraserMode = true;
+            updateToolUI(btn, null); // 지우개는 모양 버튼처럼 취급
+        }
+
+        function updateToolUI(activeToolBtn, activeColorBtn) {
+            if (activeToolBtn) {
+                document.querySelectorAll('.tool-row:first-child .tool-btn, .tool-btn:contains("지우개")').forEach(b => b.classList.remove('active'));
+                activeToolBtn.classList.add('active');
+            }
+            if (activeColorBtn) {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                activeColorBtn.classList.add('active');
+            }
+            if (!isEraserMode && !activeColorBtn) {
+                 // 지우개 모드가 해제되면 현재 색상 버튼 다시 활성화 표시
+                 document.querySelectorAll('.color-btn').forEach(b => {
+                     if(b.getAttribute('onclick').includes(currentColor)) b.classList.add('active');
+                 });
             }
         }
+
 
         function clearAll() {
             if(confirm("처음부터 다시 뜨시겠습니까?")) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawFabricPattern(); // 패턴 복구
+                drawFabricPattern(); 
             }
         }
 
@@ -372,7 +422,6 @@
             const msg = document.getElementById('letterMsg').value;
             if(!msg) return alert("뒷면에 메시지를 써주세요!");
             
-            // 캔버스 전체(원단 패턴 포함)를 이미지로 변환
             const imageData = document.getElementById('drawingCanvas').toDataURL("image/png");
             
             const res = await fetch(`/join/${roomId}`, {
