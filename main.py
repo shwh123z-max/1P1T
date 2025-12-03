@@ -48,6 +48,12 @@ rooms_db: Dict[str, RoomData] = {}
 
 # ---- API ----
 
+# [NEW] 카카오 키를 화면에 전달하는 API
+@app.get("/api/config")
+def get_config():
+    # Render 환경변수에서 'KAKAO_KEY'를 꺼내옴 (없으면 None)
+    return {"kakao_key": os.environ.get("KAKAO_KEY")}
+
 @app.post("/create")
 def create_room(request: CreateRequest):
     room_id = str(uuid.uuid4())[:8] 
@@ -97,6 +103,13 @@ def get_result_card(room_id: str):
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "Not generated yet"}
+
+# [NEW] OG 이미지(썸네일) 제공용 (파일이 있다면)
+@app.get("/og-image.png")
+def get_og_image():
+    if os.path.exists("og-image.png"):
+        return FileResponse("og-image.png")
+    return {"error": "No image"}
 
 @app.post("/reserve/{room_id}")
 def reserve_slot(room_id: str, request: JoinRequest):
@@ -154,7 +167,6 @@ def join_room(room_id: str, request: JoinRequest):
             
     return {"status": "FULL", "message": "자리 없음"}
 
-# [수정] 결과 카드 크기 축소 버전
 @app.post("/make-card/{room_id}")
 def make_card(room_id: str):
     if room_id not in rooms_db: return {"error": "No Room"}
@@ -164,12 +176,9 @@ def make_card(room_id: str):
     cols = room.columns
     rows = (total_slots // cols) + (1 if total_slots % cols else 0)
     
-    # 1. 필요한 너비/높이 계산 (수치 대폭 축소)
-    # 간격 120px, 전체 여백 50px
+    # 사이즈 축소 버전 (100px 기준)
     required_width = cols * 120 + 50
     required_height = rows * 120 + 50
-    
-    # 2. 정사각형 캔버스 만들기 (최소 크기도 500으로 줄임)
     canvas_size = max(500, required_width, required_height)
     width = canvas_size
     height = canvas_size
@@ -185,13 +194,11 @@ def make_card(room_id: str):
         col_idx = slot.position % cols
         row_idx = slot.position // cols
         
-        # 좌표 계산 (시작점 25px, 간격 120px)
         x = 25 + (col_idx * 120)
         y = 25 + (row_idx * 120)
         try:
             if slot.is_filled and slot.user:
                 img = Image.open(f"img_{room_id}_{slot.position}.png").convert("RGBA")
-                # 이미지 크기 축소 (100x100)
                 img = img.resize((100, 100))
                 canvas.paste(img, (x, y), mask=img)
         except: pass
