@@ -43,24 +43,23 @@
         .kakao-btn:hover { background-color: #fdd835; }
         .kakao-icon { width: 20px; height: 20px; }
 
-        /* [수정] 그리드 스타일 - 간격을 없애고 하나로 뭉침 */
         .grid-box { 
             background: #444; padding: 30px; border-radius: 16px; 
-            display: flex; flex-direction: column; align-items: flex-start; 
+            display: flex; flex-direction: column; align-items: flex-start; /* 좌측 정렬 */
             overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 200px;
         }
         
-        .row { display: flex; width: max-content; } /* gap 제거 */
+        /* [수정] 라이브 캔버스 여백 제거: gap을 0으로 하고 이미지를 꽉 채움 */
+        .row { display: flex; width: max-content; margin-bottom: 0; } 
         .slot { 
             width: 80px; height: 80px; 
             background: #555; 
             display: flex; align-items: center; justify-content: center; 
-            /* border-radius 제거 -> 사각형으로 붙이기 */
-            border: 1px solid #666; 
-            color: #ccc; font-weight: bold; font-size: 24px; flex-shrink: 0; position: relative; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1); 
+            flex-shrink: 0; position: relative; overflow: hidden;
         }
-        .slot img { width: 100%; height: 100%; object-fit: cover; background: #d7ccc8; } /* object-fit: cover로 꽉 채움 */
-        .slot.filled { border: 2px solid #ff80ab; z-index: 1; }
+        .slot img { width: 100%; height: 100%; object-fit: cover; background: #d7ccc8; display: block;} 
+        .slot.filled { border: none; z-index: 1; }
         .slot.empty { background: transparent; border: 1px dashed #555; opacity: 0.3; }
         
         #link-box { margin-bottom: 10px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
@@ -73,8 +72,16 @@
         .msg-name { font-weight: bold; color: #69f0ae; font-size: 14px; margin-bottom: 3px; }
         .msg-text { font-size: 13px; color: #eee; background: #2a2a2a; padding: 8px; border-radius: 8px; word-wrap: break-word; line-height: 1.4;}
         
-        #result-area { margin-top: 20px; display: none; background: #222; padding: 15px; border-radius: 16px; border: 2px solid #444;}
-        #final-img { width: 100%; height: auto; border-radius: 8px; border: 1px solid #555; }
+        #result-area { margin-top: 20px; display: none; background: #222; padding: 15px; border-radius: 16px; border: 2px solid #444; text-align: center;}
+        
+        /* [수정] 최종 카드 찌그러짐 방지: width auto, height auto */
+        #final-img { 
+            max-width: 100%; 
+            height: auto; 
+            border-radius: 8px; 
+            border: 1px solid #555; 
+            display: inline-block;
+        }
         
         .rejoin-area { margin-top: 40px; border-top: 1px solid #555; padding-top: 20px; }
         .rejoin-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
