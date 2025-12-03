@@ -151,16 +151,16 @@ def make_card(room_id: str):
     total_slots = len(room.slots)
     rows = (total_slots // cols) + (1 if total_slots % cols else 0)
     
-    # [수정] 불필요한 여백 최소화
+    # [수정] 조각 크기 및 여백 설정 (밀도 높이기)
     slot_size = 120    
-    gap = 0            
-    margin = 20        # 마진을 줄임
+    gap = 0            # 빈틈 없이 딱 붙이기
+    margin = 20        # 외곽 여백 최소화
     
-    # 캔버스 크기를 콘텐츠에 딱 맞게 계산 (최소 크기 강제 제거)
+    # 콘텐츠 크기에 딱 맞춰 캔버스 생성 (최소 크기 제한 삭제!)
     width = (cols * slot_size) + (margin * 2)
     height = (rows * slot_size) + (margin * 2)
     
-    # 니트 배경색
+    # 배경색: 니트 원단 색상 (#d7ccc8과 유사)
     bg_color = (215, 204, 200) 
     canvas = Image.new('RGB', (width, height), color=bg_color)
     
@@ -180,6 +180,7 @@ def make_card(room_id: str):
                 img_path = f"img_{room_id}_{slot.position}.png"
                 if os.path.exists(img_path):
                     user_img = Image.open(img_path).convert("RGBA")
+                    # Lanczos 필터로 깨끗하게 리사이징
                     user_img = user_img.resize((slot_size, slot_size), Image.Resampling.LANCZOS)
                     canvas.paste(user_img, (x, y), mask=user_img)
         except Exception as e: 
