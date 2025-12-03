@@ -1,342 +1,781 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>호스트 관리자</title>
+    <title>ONE TYPE ONE LETTER</title>
     <style>
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        * { box-sizing: border-box; } 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
-        body { font-family: 'Pretendard', sans-serif; background: #222; color: white; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        .container { background: #333; padding: 2rem; border-radius: 20px; width: 95%; max-width: 1400px; text-align: center; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .screen { display: none; }
-        .active { display: block; }
-
-        .dashboard-layout { display: flex; flex-direction: column; gap: 30px; }
-        @media (min-width: 1024px) {
-            .dashboard-layout { flex-direction: row; align-items: flex-start; text-align: left; }
-            .left-panel { flex: 1; min-width: 0; } 
-            .right-panel { width: 380px; flex-shrink: 0; position: sticky; top: 20px; } 
+        * {
+            box-sizing: border-box;
         }
 
-        textarea { width: 100%; height: 100px; padding: 15px; margin: 15px 0; font-size: 22px; text-align: center; text-transform: uppercase; letter-spacing: 2px; border-radius: 12px; border: none; resize: none; font-family: monospace; background: #eee; font-weight: bold; color: #333; }
-        input[type="datetime-local"] { width: 100%; padding: 12px; border-radius: 12px; border: none; font-family: inherit; margin-bottom: 25px; font-size: 16px;}
-        input.rejoin-input { width: 60%; padding: 12px; border-radius: 12px; border: none; font-size: 16px; margin-right: 10px; text-align: center;}
-
-        button { width: 100%; padding: 18px; background-color: #00c853; color: white; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; margin-top: 15px; font-weight: bold; transition: 0.2s;}
-        button:hover { transform: scale(1.02); opacity: 0.9; }
-        button.final { background-color: #d63384; margin-top: 20px; box-shadow: 0 4px 15px rgba(214, 51, 132, 0.4); }
-        button.secondary { background-color: #555; width: auto; font-size: 14px; padding: 12px; margin-top: 0;}
-        
-        .home-btn { background: #444; border: 1px solid #666; padding: 8px 15px; border-radius: 8px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 10px; }
-        .home-btn:hover { background: #555; color: white; }
-
-        /* [라이브 캔버스] 완전 밀착 스타일 */
-        .grid-box { 
-            background: #444; 
-            padding: 20px; 
-            border-radius: 16px; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 200px;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        .row { display: flex; width: max-content; margin: 0; padding: 0; } 
-        .slot { 
-            width: 70px; height: 70px; 
-            background: #555; 
-            display: flex; align-items: center; justify-content: center; 
-            border: none; margin: 0; padding: 0; 
-            flex-shrink: 0; position: relative; overflow: hidden;
-        }
-        .slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .slot.empty { background: transparent; border: 1px dashed #666; opacity: 0.2; }
-        
-        #link-box { margin-bottom: 10px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
-        a { color: #69f0ae; text-decoration: none; }
 
-        #message-list { margin-top: 20px; text-align: left; max-height: 500px; overflow-y: auto; padding-right: 5px; }
-        .msg-card { background: #444; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; gap: 15px; align-items: center; border: 1px solid #555; }
-        .msg-img { width: 50px; height: 50px; background: #d7ccc8; border-radius: 8px; object-fit: contain; border: 1px solid #ddd; flex-shrink: 0; }
-        .msg-content { flex: 1; min-width: 0; }
-        .msg-name { font-weight: bold; color: #69f0ae; font-size: 14px; margin-bottom: 3px; }
-        .msg-text { font-size: 13px; color: #eee; background: #2a2a2a; padding: 8px; border-radius: 8px; word-wrap: break-word; line-height: 1.4;}
-        
-        #result-area { margin-top: 20px; display: none; background: #222; padding: 20px; border-radius: 16px; border: 2px solid #444; text-align: center;}
-        
-        /* [중요] 최종 이미지 비율 고정 */
-        #final-img { 
-            max-width: 100%; 
-            width: auto !important; 
-            height: auto !important; 
-            border-radius: 8px; 
-            border: 1px solid #555; 
+        header {
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 80px;
+            font-weight: 900;
+            line-height: 0.9;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-left: 10px;
+            vertical-align: top;
             display: inline-block;
+            margin-top: 10px;
         }
-        
-        .rejoin-area { margin-top: 40px; border-top: 1px solid #555; padding-top: 20px; }
-        .rejoin-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
+
+        .container {
+            display: flex;
+            gap: 80px;
+            align-items: flex-start;
+        }
+
+        .preview-area {
+            flex: 1;
+        }
+
+        .form-area {
+            width: 400px;
+            flex-shrink: 0;
+        }
+
+        .grid-box {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            /* Space for scrollbar */
+        }
+
+        .row {
+            display: flex;
+            gap: 5px;
+            width: max-content;
+            /* Ensure row takes full width */
+        }
+
+        .slot {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            /* Prevent shrinking */
+            background-color: #8D6E63;
+            /* Brownish color from image */
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 2px;
+        }
+
+        .slot.empty {
+            background-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: #F5F5F5;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #000;
+            outline: none;
+        }
+
+        textarea {
+            height: 120px;
+            resize: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #999;
+        }
+
+        .helper-text {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        button.create-btn {
+            width: 100%;
+            padding: 20px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        button.create-btn:hover {
+            background-color: #333;
+        }
+
+        /* Screen switching */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Dashboard styles (minimalist adaptation) */
+        #screen-dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .status-badge {
+            background: #000;
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 2px;
+            margin-left: 10px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+
+        .panel {
+            background: #fff;
+        }
+
+        .panel h3 {
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .link-box {
+            background: #f5f5f5;
+            padding: 15px;
+            font-family: monospace;
+            word-break: break-all;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .secondary-btn {
+            background: #fff;
+            border: 1px solid #000;
+            color: #000;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .secondary-btn:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                /* Stack vertically */
+                gap: 40px;
+            }
+
+            .preview-area {
+                order: -1;
+                /* Move to top */
+                width: 100%;
+            }
+
+            .form-area {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 40px;
+                /* Smaller title */
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Recent Rooms Styles */
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+            margin-bottom: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .recent-item:hover {
+            background: #f9f9f9;
+            border-color: #ccc;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        
-        <div id="screen-setup" class="screen active" style="max-width: 600px; margin: 0 auto;">
-            <h2>🎨 방 만들기</h2>
-            <textarea id="TextInput" placeholder="MERRY&#10;CHRISTMAS" maxlength="50" oninput="handleInput()"></textarea>
-            <input type="datetime-local" id="TimeInput">
-            <div id="preview-box" class="grid-box" style="align-items: center; min-height: 100px;"></div> 
-            <button onclick="createRoom()">이대로 방 생성</button>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+    integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfYR9bBuGdWLFgZwClUC"
+    crossorigin="anonymous"></script>
 
-            <div class="rejoin-area">
-                <p style="color:#aaa; font-size:14px;">혹시 만들었던 방이 있나요?</p>
-                <div class="rejoin-row">
-                    <input type="text" id="RejoinId" class="rejoin-input" placeholder="방 ID 입력">
-                    <button class="secondary" onclick="manualRejoin()">이어하기</button>
+<body>
+
+    <!-- CREATE SCREEN -->
+    <div id="screen-setup" class="screen active">
+        <header>
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                <h1>ONE TYPE<br>ONE LETTER</h1>
+                <span class="subtitle" style="margin-left:0;">ONLINE Rolling Paper</span>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="preview-area">
+                <div id="preview-grid" class="grid-box">
+                    <!-- Preview slots will be generated here -->
+                    <div class="row">
+                        <div class="slot">S</div>
+                        <div class="slot">H</div>
+                        <div class="slot">A</div>
+                        <div class="slot">R</div>
+                        <div class="slot">E</div>
+                    </div>
+                    <div class="row">
+                        <div class="slot">Y</div>
+                        <div class="slot">O</div>
+                        <div class="slot">U</div>
+                        <div class="slot">R</div>
+                    </div>
+                    <div class="row">
+                        <div class="slot">H</div>
+                        <div class="slot">E</div>
+                        <div class="slot">A</div>
+                        <div class="slot">R</div>
+                        <div class="slot">T</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-area">
+                <div class="form-group">
+                    <label>내 이름 (호스트)</label>
+                    <input type="text" id="HostNameInput" placeholder="이름을 입력하세요">
+                </div>
+
+                <div class="form-group">
+                    <label>함께 만들 문구</label>
+                    <textarea id="TextInput" placeholder="SHARE&#10;YOUR&#10;HEART" oninput="handleInput()"></textarea>
+                    <div class="helper-text">* 영문 대문자로 입력해주세요 (띄어쓰기로 줄바꿈 가능)</div>
+                </div>
+
+                <div class="form-group">
+                    <label>카드 공개 시간</label>
+                    <input type="datetime-local" id="TimeInput">
+                </div>
+
+                <button class="create-btn" onclick="createRoom()">방 만들기</button>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="#" onclick="toggleRejoin()" style="color:#999; font-size:12px; text-decoration:none;">이미 방이
+                        있나요?</a>
+                    <div id="rejoin-box" style="display:none; margin-top:10px;">
+                        <input type="text" id="RejoinId" placeholder="방 ID" style="padding:10px; width:150px;">
+                        <button class="secondary-btn" onclick="manualRejoin()">입장</button>
+                    </div>
+                </div>
+
+                <div id="recent-rooms-area"
+                    style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; display:none;">
+                    <label>최근 만든 방</label>
+                    <div id="recent-list"></div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="screen-dashboard" class="screen">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <div style="text-align: left;">
-                    <h2 style="margin:0; white-space: nowrap;">📡 실시간 현황</h2>
-                    <div style="font-size:14px; color:#aaa; margin-top:5px;">Room ID: <span id="display-room-id" style="color:#69f0ae; font-weight:bold;"></span></div>
+    <!-- DASHBOARD SCREEN -->
+    <div id="screen-dashboard" class="screen">
+        <div class="dashboard-header">
+            <div>
+                <span class="dashboard-title">ROOM <span id="room-id-display"></span></span>
+                <span id="d-day-badge" class="status-badge">LOCKED</span>
+            </div>
+            <button class="secondary-btn" onclick="goHome()">홈</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="panel">
+                <h3>실시간 참여 현황</h3>
+                <div id="live-grid" class="grid-box"></div>
+
+                <div id="result-wrapper" style="display:none; margin-top:30px;">
+                    <h3>완성된 카드</h3>
+                    <img id="final-img" style="max-width:100%; border:1px solid #eee;" src="">
+                    <div style="margin-top:10px;">
+                        <button class="secondary-btn" onclick="downloadImg()">다운로드</button>
+                    </div>
+
+                    <div style="margin-top:30px; border-top:1px solid #eee; padding-top:20px;">
+                        <h3>친구들에게 쓰는 편지 (카드 뒷면)</h3>
+                        <textarea id="HostLetter" placeholder="친구들에게 보낼 메시지를 작성하세요..."
+                            style="width:100%; height:100px; padding:10px; border:1px solid #ddd;"></textarea>
+                        <button class="secondary-btn" style="width:100%; margin-top:10px;" onclick="saveHostLetter()">편지
+                            저장</button>
+                    </div>
                 </div>
-                <button class="home-btn" onclick="goHome()">🏠 새 방 만들기</button>
             </div>
 
-            <div class="dashboard-layout">
-                <div class="left-panel">
-                    <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스</h3>
-                    <div id="live-grid" class="grid-box"></div>
-                    
-                    <div id="result-area">
-                        <h3 style="margin: 10px 0; color: #ffeb3b;">🎉 완성된 카드</h3>
-                        <img id="final-img" src="" alt="결과 이미지">
-                    </div>
+            <div class="panel">
+                <div style="margin-bottom:30px;">
+                    <h3>초대 링크</h3>
+                    <div id="share-link" class="link-box"></div>
+                    <button class="secondary-btn" style="width:100%" onclick="copyLink()">링크 복사</button>
+                    <button class="secondary-btn" style="width:100%; margin-top:10px; background:#FEE500; border:none;"
+                        onclick="shareKakao()">카카오톡 공유</button>
                 </div>
 
-                <div class="right-panel">
-                    <div id="link-box">
-                        <div style="color:#aaa; font-size:12px; margin-bottom:5px;">친구 초대 링크 👇</div>
-                        <a id="share-link" href="#" target="_blank">링크 생성 중...</a>
-                    </div>
-                    <button class="final" onclick="makeFinalCard()">🎁 최종 카드 생성 & 저장</button>
-                    <p style="font-size:12px; color:#aaa; margin-top:5px; margin-bottom: 30px;">* 친구들이 다 그리면 눌러주세요</p>
+                <!-- Messages section removed as requested -->
 
-                    <h3 style="border-top: 1px solid #555; padding-top: 20px;">📩 도착한 편지함</h3>
-                    <div id="message-list">
-                        <div style="color:#888; text-align:center;">아직 도착한 편지가 없습니다.</div>
-                    </div>
+                <div>
+                    <h3>설정</h3>
+                    <p id="make-desc" style="font-size:12px; color:#666;">공개 시간이 되면 카드를 완성할 수 있어요</p>
+                    <button id="make-btn" class="create-btn" onclick="makeFinalCard()" disabled>공개 대기 중</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentColumns = 5;
         let myRoomId = null;
+        let openTime = null;
+        let isOpened = false;
 
-        window.onload = function() {
+        window.onload = function () {
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('room');
-            if (roomId) { rejoinRoom(roomId); }
+            if (roomId) rejoinRoom(roomId);
+
+            // Set default time to tomorrow
+            const now = new Date();
+            now.setDate(now.getDate() + 1);
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('TimeInput').value = now.toISOString().slice(0, 16);
+
+            loadRoomHistory();
+            initKakao();
         };
 
-        function goHome() {
-            if(confirm("현재 방에서 나가시겠습니까?")) {
-                window.location.href = "/host";
-            }
+        function toggleRejoin() {
+            const box = document.getElementById('rejoin-box');
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
         }
 
         function handleInput() {
-            const textarea = document.getElementById('TextInput');
-            let val = textarea.value.toUpperCase().replace(/[^A-Z\n ]/g, "");
-            textarea.value = val;
-            updateGrid(val, 'preview-box');
+            const ta = document.getElementById('TextInput');
+            // Allow A-Z, newline, space. Convert to uppercase.
+            ta.value = ta.value.toUpperCase().replace(/[^A-Z\n ]/g, "");
+            updatePreview(ta.value);
         }
 
-        function updateGrid(text, elementId) {
-            const box = document.getElementById(elementId);
-            if(!box) return;
-            box.innerHTML = ''; 
-            const lines = text.split('\n');
-            let maxLen = 0;
-            lines.forEach(l => maxLen = Math.max(maxLen, l.length));
-            if(elementId === 'preview-box') currentColumns = maxLen;
+        function updatePreview(text) {
+            const box = document.getElementById('preview-grid');
+            box.innerHTML = '';
 
+            const lines = text.split('\n');
             lines.forEach(line => {
-                if(line.length === 0) return;
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'row';
+                const row = document.createElement('div');
+                row.className = 'row';
                 for (let char of line) {
-                    const slotDiv = document.createElement('div');
-                    slotDiv.className = (char === " ") ? 'slot empty' : 'slot';
-                    if(char !== " ") slotDiv.innerText = char;
-                    rowDiv.appendChild(slotDiv);
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    if (char === ' ') slot.classList.add('empty');
+                    else slot.innerText = char;
+                    row.appendChild(slot);
                 }
-                box.appendChild(rowDiv);
+                box.appendChild(row);
             });
         }
 
         async function createRoom() {
-            const rawText = document.getElementById('TextInput').value;
-            const timeVal = document.getElementById('TimeInput').value;
-            if(!rawText.trim() || !timeVal) return alert("문구와 시간을 모두 입력해주세요!");
+            const hostName = document.getElementById('HostNameInput').value;
+            const text = document.getElementById('TextInput').value;
+            const time = document.getElementById('TimeInput').value;
 
-            const lines = rawText.toUpperCase().split('\n');
-            let maxLen = 0;
-            lines.forEach(l => maxLen = Math.max(maxLen, l.length));
-            let paddedText = "";
-            lines.forEach(line => { paddedText += line.padEnd(maxLen, " "); });
+            if (!text.trim() || !time) return alert("모든 항목을 입력해주세요.");
 
-            const res = await fetch('/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: paddedText, columns: maxLen, open_time: timeVal })
-            });
-            const data = await res.json();
-            rejoinRoom(data.room_id);
+            const lines = text.split('\n');
+            let maxLen = 0; lines.forEach(l => maxLen = Math.max(maxLen, l.length));
+            let paddedText = ""; lines.forEach(l => paddedText += l.padEnd(maxLen, " "));
+
+            try {
+                const res = await fetch('/create', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: paddedText,
+                        columns: maxLen,
+                        open_time: time,
+                        host_name: hostName
+                    })
+                });
+                const data = await res.json();
+                saveRoomToHistory(data.room_id, hostName);
+                rejoinRoom(data.room_id);
+            } catch (e) { alert("방 생성 오류"); }
         }
 
         function manualRejoin() {
-            const inputId = document.getElementById('RejoinId').value.trim();
-            if(!inputId) return alert("방 ID를 입력해주세요!");
-            rejoinRoom(inputId);
+            const rid = document.getElementById('RejoinId').value.trim();
+            if (rid) rejoinRoom(rid);
         }
 
         async function rejoinRoom(roomId) {
             myRoomId = roomId;
-            const res = await fetch(`/status/${myRoomId}`);
-            const data = await res.json();
-            
-            if(data.error) {
-                alert("존재하지 않는 방입니다.");
-                window.history.pushState({}, '', '/host');
-                return;
+            try {
+                const res = await fetch(`/status/${roomId}`);
+                const data = await res.json();
+                if (data.error) { alert("방을 찾을 수 없습니다"); return; }
+
+                document.getElementById('screen-setup').classList.remove('active');
+                document.getElementById('screen-dashboard').classList.add('active');
+
+                openTime = new Date(data.open_time);
+                document.getElementById('room-id-display').innerText = roomId;
+
+                const url = window.location.origin + "/?room=" + roomId;
+                document.getElementById('share-link').innerText = url;
+                window.history.pushState({}, '', '/host?room=' + roomId);
+
+                checkTime();
+                renderLiveGrid(data.slots, data.columns);
+                // updateMessageList(data.slots); // Removed
+                checkFinalCard();
+
+                setInterval(() => {
+                    checkTime();
+                    fetchLiveStatus();
+                }, 3000);
+
+            } catch (e) { console.error(e); alert("방 로드 실패"); }
+        }
+
+        function checkTime() {
+            const now = new Date();
+            const badge = document.getElementById('d-day-badge');
+            const btn = document.getElementById('make-btn');
+            const desc = document.getElementById('make-desc');
+
+            if (now >= openTime) {
+                isOpened = true;
+                badge.innerText = "오픈됨";
+                badge.style.background = "#00C853";
+
+                btn.disabled = false;
+                btn.innerText = "최종 카드 생성";
+                desc.innerText = "시간이 되었습니다! 최종 카드를 생성하세요.";
+            } else {
+                isOpened = false;
+                const diffMs = openTime - now;
+                const diffMins = Math.ceil(diffMs / (1000 * 60));
+
+                let timeText = "";
+                if (diffMins > 60) {
+                    const h = Math.floor(diffMins / 60);
+                    const m = diffMins % 60;
+                    timeText = `${h}시간 ${m}분 남음`;
+                } else {
+                    timeText = `${diffMins}분 남음`;
+                }
+
+                badge.innerText = `잠김 (${timeText})`;
+                badge.style.background = "#000";
+
+                btn.disabled = true;
+                btn.innerText = "잠김";
             }
-
-            if(data.columns) currentColumns = data.columns;
-
-            document.getElementById('screen-setup').classList.remove('active');
-            document.getElementById('screen-dashboard').classList.add('active');
-            document.getElementById('display-room-id').innerText = myRoomId;
-            
-            const newUrl = window.location.pathname + "?room=" + myRoomId;
-            window.history.pushState({path: newUrl}, '', newUrl);
-            
-            const shareUrl = window.location.origin + "/?room=" + myRoomId;
-            document.getElementById('share-link').href = shareUrl;
-            document.getElementById('share-link').innerText = shareUrl;
-            
-            renderLiveGrid(data.slots);
-            updateMessageList(data.slots);
-
-            const imgCheck = await fetch(`/result_card/${myRoomId}`);
-            if(imgCheck.ok) {
-                 document.getElementById('final-img').src = `/result_card/${myRoomId}?t=` + new Date().getTime();
-                 document.getElementById('result-area').style.display = 'block';
-            }
-
-            setInterval(fetchLiveStatus, 2000);
         }
 
         async function fetchLiveStatus() {
-            if(!myRoomId) return;
-            try {
-                const res = await fetch(`/status/${myRoomId}`);
-                const data = await res.json();
-                if(data.error) return; 
-                renderLiveGrid(data.slots);
-                updateMessageList(data.slots);
-            } catch(e) {}
+            if (!myRoomId) return;
+            const res = await fetch(`/status/${myRoomId}`);
+            const data = await res.json();
+            if (!data.error) {
+                renderLiveGrid(data.slots, data.columns);
+                // updateMessageList(data.slots); // Removed
+            }
         }
 
-        function renderLiveGrid(slots) {
-            const liveBox = document.getElementById('live-grid');
-            liveBox.innerHTML = '';
-            
-            // 중앙 정렬
-            liveBox.style.display = 'flex';
-            liveBox.style.flexDirection = 'column';
-            liveBox.style.alignItems = 'center';
+        function renderLiveGrid(slots, cols) {
+            const box = document.getElementById('live-grid');
+            box.innerHTML = '';
 
-            let currentRow = document.createElement('div');
-            currentRow.className = 'row';
-            
-            slots.forEach((slot, index) => {
-                if (index > 0 && index % currentColumns === 0) {
-                    liveBox.appendChild(currentRow);
-                    currentRow = document.createElement('div');
-                    currentRow.className = 'row';
+            let rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+
+            slots.forEach((slot, idx) => {
+                if (idx > 0 && idx % cols === 0) {
+                    box.appendChild(rowDiv);
+                    rowDiv = document.createElement('div');
+                    rowDiv.className = 'row';
                 }
-                const slotDiv = document.createElement('div');
-                
-                if (slot.char === " ") {
-                    slotDiv.className = 'slot empty';
+
+                const el = document.createElement('div');
+                el.className = 'slot';
+                el.style.width = '40px'; el.style.height = '40px'; el.style.fontSize = '16px';
+
+                if (slot.char === ' ') {
+                    el.classList.add('empty');
                 } else {
-                    if(slot.is_filled) {
-                        slotDiv.className = 'slot filled';
-                        const time = new Date().getTime();
-                        slotDiv.innerHTML = `<img src="/img/${myRoomId}/${slot.position}?t=${time}">`;
+                    if (slot.is_filled) {
+                        el.style.backgroundColor = "#A14343"; // New Main Color
+                        el.style.color = "#fff";
+                        el.innerText = slot.char;
                     } else {
-                        slotDiv.className = 'slot';
-                        slotDiv.innerText = slot.char;
+                        el.innerText = slot.char;
                     }
                 }
-                currentRow.appendChild(slotDiv);
+                rowDiv.appendChild(el);
             });
-            liveBox.appendChild(currentRow);
+            box.appendChild(rowDiv);
         }
 
         function updateMessageList(slots) {
             const list = document.getElementById('message-list');
-            const filledSlots = slots.filter(s => s.is_filled && s.user);
+            const filled = slots.filter(s => s.is_filled);
 
-            if (filledSlots.length === 0) {
-                list.innerHTML = '<div style="color:#888; text-align:center;">아직 도착한 편지가 없습니다.</div>';
+            if (filled.length === 0) {
+                list.innerHTML = '<div style="color:#999;">No messages yet.</div>';
                 return;
             }
+
             list.innerHTML = '';
-            filledSlots.forEach(slot => {
-                const time = new Date().getTime();
-                const item = document.createElement('div');
-                item.className = 'msg-card';
-                item.innerHTML = `
-                    <img src="/img/${myRoomId}/${slot.position}?t=${time}" class="msg-img">
-                    <div class="msg-content">
-                        <div class="msg-name">${slot.user} <span class="msg-char">${slot.char} 담당</span></div>
-                        <div class="msg-text">${slot.message}</div>
-                    </div>
-                `;
-                list.appendChild(item);
+            filled.forEach(s => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '10px';
+                div.style.padding = '10px';
+                div.style.background = '#f9f9f9';
+                div.style.borderRadius = '4px';
+
+                const user = isOpened ? s.user : 'Anonymous';
+                const msg = isOpened ? s.message : 'Secret message...';
+
+                div.innerHTML = `<strong>${user}</strong>: ${msg}`;
+                list.appendChild(div);
             });
         }
-        
-        async function makeFinalCard() {
-            if(!myRoomId) return;
-            const btn = document.querySelector('button.final');
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ 생성 중...";
-            btn.disabled = true;
 
-            await fetch(`/make-card/${myRoomId}`, { method: 'POST' });
-            
-            const resultArea = document.getElementById('result-area');
-            const resultImg = document.getElementById('final-img');
-            const time = new Date().getTime();
-            
-            resultImg.src = `/result_card/${myRoomId}?t=` + time;
-            
-            resultArea.style.display = 'block';
-            resultArea.scrollIntoView({ behavior: 'smooth' });
-            
-            alert("카드 생성 완료!");
-            btn.innerText = originalText;
-            btn.disabled = false;
+        async function makeFinalCard() {
+            if (!myRoomId) return;
+            const btn = document.getElementById('make-btn');
+            btn.disabled = true; btn.innerText = "생성 중...";
+
+            try {
+                await fetch(`/make-card/${myRoomId}`, { method: 'POST' });
+                await checkFinalCard();
+                alert("카드 생성 완료!");
+            } catch (e) { alert("생성 실패"); }
+
+            btn.disabled = false; btn.innerText = "재생성";
+        }
+
+        async function checkFinalCard() {
+            if (!isOpened) {
+                document.getElementById('result-wrapper').style.display = 'none';
+                return;
+            }
+            try {
+                const res = await fetch(`/result_card/${myRoomId}`);
+                const contentType = res.headers.get("content-type");
+                if (res.ok && contentType && contentType.includes("image")) {
+                    const wrapper = document.getElementById('result-wrapper');
+                    const img = document.getElementById('final-img');
+                    img.src = `/result_card/${myRoomId}?t=` + new Date().getTime();
+                    wrapper.style.display = 'block';
+                } else {
+                    document.getElementById('result-wrapper').style.display = 'none';
+                }
+            } catch (e) { console.log("No final card yet"); }
+        }
+
+        async function saveHostLetter() {
+            const msg = document.getElementById('HostLetter').value;
+            if (!msg.trim()) return alert("메시지를 작성해주세요.");
+            try {
+                await fetch(`/host-message/${myRoomId}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_name: "HOST", message: msg })
+                });
+                alert("편지 저장 완료!");
+            } catch (e) { alert("편지 저장 오류"); }
+        }
+
+        function copyLink() {
+            const url = document.getElementById('share-link').innerText;
+            navigator.clipboard.writeText(url).then(() => alert("링크 복사 완료!"));
+        }
+
+        function downloadImg() {
+            const src = document.getElementById('final-img').src;
+            if (!src) return;
+            const a = document.createElement('a');
+            a.href = src; a.download = `Card_${myRoomId}.jpg`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function goHome() {
+            if (confirm("홈으로 돌아가시겠습니까?")) window.location.href = "/host";
+        }
+
+        function saveRoomToHistory(roomId, hostName) {
+            let history = JSON.parse(localStorage.getItem('myRooms') || '[]');
+            // Remove duplicate if exists
+            history = history.filter(r => r.id !== roomId);
+            // Add new to top
+            history.unshift({ id: roomId, name: hostName, date: new Date().toISOString() });
+            // Keep max 5
+            if (history.length > 5) history = history.slice(0, 5);
+            localStorage.setItem('myRooms', JSON.stringify(history));
+        }
+
+        function loadRoomHistory() {
+            const history = JSON.parse(localStorage.getItem('myRooms') || '[]');
+            const list = document.getElementById('recent-list');
+            const area = document.getElementById('recent-rooms-area');
+
+            if (history.length === 0) {
+                area.style.display = 'none';
+                return;
+            }
+
+            area.style.display = 'block';
+            list.innerHTML = '';
+
+            history.forEach(room => {
+                const div = document.createElement('div');
+                div.className = 'recent-item';
+                div.onclick = () => rejoinRoom(room.id);
+                div.innerHTML = `
+                    <span style="font-weight:bold; font-size:14px;">${room.name}</span>
+                    <span style="font-size:12px; color:#999;">ID: ${room.id}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function initKakao() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                if (config.kakao_key && config.kakao_key !== "YOUR_KAKAO_JS_KEY_HERE") {
+                    Kakao.init(config.kakao_key);
+                }
+            } catch (e) { console.log("Kakao init failed"); }
+        }
+
+        function shareKakao() {
+            if (!Kakao.isInitialized()) {
+                alert("카카오 키가 설정되지 않았습니다. .env 파일을 확인해주세요.");
+                return;
+            }
+
+            const url = window.location.origin + "/?room=" + myRoomId;
+
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: 'ONE TYPE ONE LETTER',
+                    description: '친구의 카드를 채워주세요!',
+                    imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077063.png', // Placeholder icon
+                    link: {
+                        mobileWebUrl: url,
+                        webUrl: url,
+                    },
+                },
+                buttons: [
+                    {
+                        title: '참여하기',
+                        link: {
+                            mobileWebUrl: url,
+                            webUrl: url,
+                        },
+                    },
+                ],
+            });
         }
     </script>
 </body>
+
 </html>
