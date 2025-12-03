@@ -151,23 +151,20 @@ def make_card(room_id: str):
     total_slots = len(room.slots)
     rows = (total_slots // cols) + (1 if total_slots % cols else 0)
     
-    # [디자인 설정] 니트 스타일
+    # [수정] 불필요한 여백 최소화
     slot_size = 120    
     gap = 0            
-    margin = 40        
+    margin = 20        # 마진을 줄임
     
-    # 캔버스 크기 계산 (최소 크기 확보)
+    # 캔버스 크기를 콘텐츠에 딱 맞게 계산 (최소 크기 강제 제거)
     width = (cols * slot_size) + (margin * 2)
     height = (rows * slot_size) + (margin * 2)
-    width = max(width, 600)
-    height = max(height, 400)
-
-    # HTML의 원단 배경색(#d7ccc8)과 비슷한 색상 사용
+    
+    # 니트 배경색
     bg_color = (215, 204, 200) 
     canvas = Image.new('RGB', (width, height), color=bg_color)
     
-    content_w = (cols * slot_size)
-    start_x = (width - content_w) // 2
+    start_x = margin
     start_y = margin
 
     for slot in room.slots:
