@@ -48,7 +48,6 @@ rooms_db: Dict[str, RoomData] = {}
 
 @app.get("/api/config")
 def get_config():
-    # 카카오 키가 있어도 이제 안 씀 (빈 값 반환)
     return {"kakao_key": None}
 
 @app.post("/create")
@@ -148,25 +147,24 @@ def make_card(room_id: str):
     rows = (total_slots // cols) + (1 if total_slots % cols else 0)
     
     slot_size = 120    
-    margin = 40  # 외곽 여백 (이 부분도 빨간 니트로 채워짐)
+    margin = 20  
     
-    # 전체 캔버스 크기
     width = (cols * slot_size) + (margin * 2)
     height = (rows * slot_size) + (margin * 2)
     
-    # [핵심] 배경: 크리스마스 레드 (#b71c1c)
-    bg_color = (183, 28, 28) 
-    dot_color = (160, 20, 20) # 배경 패턴용 더 진한 빨강
+    # [수정] 배경색: 사용자가 그리는 캔버스 색과 동일한 베이지색
+    bg_color = (215, 204, 200) # #d7ccc8
+    dot_color = (188, 170, 164) # #bcaaa4 (구멍 색상)
     
     canvas = Image.new('RGB', (width, height), color=bg_color)
     draw = ImageDraw.Draw(canvas)
 
-    # [디자인] 배경 전체에 니트 구멍 패턴 그리기 (자동 채움 효과)
-    # 픽셀 사이즈 16px 기준 (HTML과 동일 비율) -> 120px 안에 약 7.5개... 
-    # 여기서는 단순화를 위해 20px 간격으로 점을 찍습니다.
+    # [디자인] 전체 캔버스에 '니트 구멍 패턴' 미리 그리기
+    # 120px 슬롯 기준으로 약 7~8개의 구멍이 들어감. (간격 약 15~16px)
     for py in range(0, height, 15):
         for px in range(0, width, 15):
-            draw.ellipse([px, py, px+2, py+2], fill=dot_color)
+            # 약간의 오프셋을 주어 자연스럽게
+            draw.ellipse([px, py, px+3, py+3], fill=dot_color)
     
     start_x = margin
     start_y = margin
@@ -178,7 +176,6 @@ def make_card(room_id: str):
         x = start_x + (col_idx * slot_size)
         y = start_y + (row_idx * slot_size)
         
-        # 공백(Space)인 경우에도 빨간 배경이 유지되므로 자연스러움
         if slot.char == " ": continue 
         
         try:
@@ -187,13 +184,8 @@ def make_card(room_id: str):
                 if os.path.exists(img_path):
                     user_img = Image.open(img_path).convert("RGBA")
                     user_img = user_img.resize((slot_size, slot_size), Image.Resampling.LANCZOS)
-                    # 붙여넣기
+                    # 이미지 붙여넣기 (투명도 마스크 사용)
                     canvas.paste(user_img, (x, y), mask=user_img)
-            else:
-                # [선택] 아직 안 채워진 글자 자리 처리 (약하게 표시할지 말지)
-                # 여기서는 비워둡니다 (빨간 배경이 보임)
-                pass
-
         except Exception as e: 
             print(f"이미지 병합 오류: {e}")
             
