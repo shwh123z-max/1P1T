@@ -14,19 +14,14 @@
         .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; background: #3e2723; transition: 0.3s; z-index: 100;}
         .hidden { display: none !important; }
 
-        /* [수정] 결과 이미지 비율 문제 해결 (짜부 방지) */
+        /* [수정] 결과 이미지 비율 문제 해결 */
         #final-screen img { 
             max-width: 100%; 
             max-height: 55vh; 
-            width: auto; 
-            height: auto; 
-            object-fit: contain; 
-            border-radius: 5px; 
-            border: 2px solid #5d4037; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            width: auto; height: auto; object-fit: contain; 
+            border-radius: 5px; border: 2px solid #5d4037; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
-        /* 툴바 공간 확보를 위해 높이 조정 */
         .scene { width: 340px; height: 540px; position: relative; display: none; z-index: 50; margin-bottom: 60px; }
         .card { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 15px; }
         .card.is-flipped { transform: rotateY(180deg); }
@@ -38,7 +33,6 @@
         .card.is-flipped .card-back { pointer-events: auto; }
 
         .canvas-area { flex: 1; position: relative; cursor: crosshair; overflow: hidden; background: #d7ccc8; }
-        
         .guide-char { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             font-size: 300px; font-weight: 900; color: #5d4037; opacity: 0.15; 
@@ -47,15 +41,12 @@
         
         canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 10; }
         
-        /* [수정] 2단 툴바 (모양 선택 + 색상 선택) */
         .tools { height: 110px; background: #5d4037; display: flex; flex-direction: column; padding: 10px; gap: 8px; border-top: 4px solid #4e342e; z-index: 20; border-radius: 0 0 15px 15px;}
         .tool-row { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; }
         
-        /* 스티치 모양 버튼 */
         .shape-btn { width: 40px; height: 35px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; background: #8d6e63; color: #d7ccc8;}
         .shape-btn.active { border-color: #fff9c4; background: #a1887f; color: white; box-shadow: 0 0 5px #fff9c4; transform: translateY(-2px);}
         
-        /* 색상 버튼 */
         .color-btn { width: 35px; height: 35px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); cursor: pointer; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;}
         .color-btn.active { transform: scale(1.1); border-color: white; box-shadow: 0 0 10px white; }
         
@@ -63,24 +54,18 @@
         .trash-btn { background: #6d4c41; color: white; border: 1px solid #8d6e63; font-size: 16px; border-radius: 50%; width: 35px; height: 35px; margin-left: auto;}
 
         textarea { width: 100%; flex: 1; padding: 15px; border: 2px dashed #ccc; background: transparent; font-size: 16px; font-family: inherit; resize: none; border-radius: 10px; margin-bottom: 20px; }
-
         input.intro-input { padding: 15px; font-size: 20px; border-radius: 30px; border: none; text-align: center; width: 250px; margin-top: 20px;}
         button.btn-main { padding: 15px 40px; font-size: 18px; border-radius: 30px; border: none; background: #00c853; color: white; margin-top: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,200,83,0.3); }
-        
         .action-bar { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 999; pointer-events: none; }
         .btn-circle { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; pointer-events: auto; transition: transform 0.2s; }
         .btn-flip { background: white; color: #333; }
         .btn-send { background: #d63384; color: white; }
         .btn-circle:active { transform: scale(0.9); }
-
         .top-guide { position: absolute; top: -60px; width: 100%; text-align: center; color: #ffecb3; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        
-        /* 카카오 버튼 스타일 */
         .kakao-btn { background-color: #FEE500; color: #000; padding: 12px 20px; border-radius: 30px; border: none; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
-
     <div id="intro-screen" class="screen">
         <h1 style="font-size: 40px; margin-bottom: 5px;">Knitting Mate</h1>
         <p style="opacity: 0.8;">친구들과 함께 만드는 니트 카드 🧶</p>
@@ -100,7 +85,6 @@
         <div style="margin: 20px; padding: 10px; background: #3e2723; border-radius: 10px; display: flex; justify-content: center;">
             <img src="" alt="완성된 카드">
         </div>
-        
         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
             <button class="btn-main" style="background-color: #2979ff; margin:0; padding: 10px 20px; font-size: 14px;" onclick="downloadResult()">이미지 저장 💾</button>
             <button class="kakao-btn" onclick="shareKakao()">
@@ -112,26 +96,26 @@
 
     <div class="scene" id="workspace">
         <div class="top-guide" id="guideText">🧶 칸을 채워 무늬를 만들어주세요</div>
-        
         <div class="card" id="mainCard">
             <div class="card-face card-front">
                 <div class="canvas-area" id="canvasContainer">
                     <div class="guide-char" id="targetChar">?</div>
                     <canvas id="drawingCanvas"></canvas>
                 </div>
-                
                 <div class="tools">
                     <div class="tool-row" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                         <span style="color:#d7ccc8; font-size:12px;">모양:</span>
-                        <div class="shape-btn active" onclick="setShape('heart', this)" title="하트 스티치">♥</div>
-                        <div class="shape-btn" onclick="setShape('circle', this)" title="기본 코">●</div>
-                        <div class="shape-btn" onclick="setShape('v-stitch', this)" title="V자 코" style="font-size:14px;">∨</div>
+                        <div class="shape-btn active" onclick="setShape('heart', this)">♥</div>
+                        <div class="shape-btn" onclick="setShape('circle', this)">●</div>
+                        <div class="shape-btn" onclick="setShape('v-stitch', this)" style="font-size:14px;">∨</div>
                     </div>
                     <div class="tool-row">
                         <span style="color:#d7ccc8; font-size:12px;">실색:</span>
-                        <div class="color-btn active" style="background:#b71c1c" onclick="setColor('#b71c1c', this)"></div> <div class="color-btn" style="background:#2e7d32" onclick="setColor('#2e7d32', this)"></div> <div class="color-btn" style="background:#fff9c4" onclick="setColor('#fff9c4', this)"></div> <div class="shape-btn eraser-btn" onclick="setEraser(this)" title="지우개" style="margin-left:5px;">✂️</div>
-                        
-                        <button class="trash-btn" onclick="clearAll()" title="전체 지우기">🗑️</button>
+                        <div class="color-btn active" style="background:#b71c1c" onclick="setColor('#b71c1c', this)"></div> 
+                        <div class="color-btn" style="background:#2e7d32" onclick="setColor('#2e7d32', this)"></div> 
+                        <div class="color-btn" style="background:#fff9c4" onclick="setColor('#fff9c4', this)"></div> 
+                        <div class="shape-btn eraser-btn" onclick="setEraser(this)" title="지우개" style="margin-left:5px;">✂️</div>
+                        <button class="trash-btn" onclick="clearAll()">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -142,7 +126,6 @@
             </div>
         </div>
     </div>
-
     <div class="action-bar" id="actionBar" style="display:none;">
         <button class="btn-circle btn-flip" onclick="flipCard()">🔄</button>
         <button class="btn-circle btn-send" onclick="submitCard()">🧶</button>
@@ -151,69 +134,42 @@
     <script>
         const PIXEL_SIZE = 16;  
         const FABRIC_DOT_COLOR = "#bcaaa4"; 
-        
-        let myName = "";
-        let isFlipped = false;
-        let canvas, ctx, painting = false;
-        let currentColor = "#b71c1c"; 
-        let currentShape = "heart"; // 기본 모양
-        let isEraserMode = false;
+        const BG_COLOR = "#d7ccc8"; // [중요] 캔버스 배경색 변수 추가
+
+        let myName = ""; let isFlipped = false; let canvas, ctx, painting = false;
+        let currentColor = "#b71c1c"; let currentShape = "heart"; let isEraserMode = false;
         let cols, rows;
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
 
-        // [카카오 초기화]
         window.onload = function() {
-            fetch('/api/config').then(r=>r.json()).then(d=>{
-                if(d.kakao_key) {
-                    try { Kakao.init(d.kakao_key); } catch(e) {}
-                }
-            });
+            fetch('/api/config').then(r=>r.json()).then(d=>{ if(d.kakao_key) try { Kakao.init(d.kakao_key); } catch(e) {} });
         };
-
-        if (!roomId) {
-            alert("방 번호가 없습니다.");
-            document.body.innerHTML = "<h1 style='color:white;'>잘못된 접근</h1>";
-        }
+        if (!roomId) { alert("방 번호가 없습니다."); document.body.innerHTML = "<h1 style='color:white;'>잘못된 접근</h1>"; }
 
         async function checkStart() {
             const nameInput = document.getElementById('userName');
             if(!nameInput.value.trim()) return alert("이름을 입력해주세요!");
             myName = nameInput.value;
-
             try {
                 const res = await fetch(`/status/${roomId}`);
                 const status = await res.json();
-                
                 if(status.error) return alert("방이 존재하지 않습니다.");
-
                 if(status.is_open) {
                     document.querySelector('#final-screen img').src = `/result_card/${roomId}`;
-                    showScreen('final-screen');
-                    return;
+                    showScreen('final-screen'); return;
                 }
-
                 const reserveRes = await fetch(`/reserve/${roomId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_name: myName, message: "" })
                 });
                 const reserveData = await reserveRes.json();
-
-                if(reserveData.status === "TIME_OVER") {
-                    alert(reserveData.message);
-                    location.reload(); return;
-                }
-
-                if (reserveData.status === "SUCCESS") {
-                    startDecorating(reserveData.assigned_char);
-                } else {
-                    if(confirm("자리가 꽉 찼습니다! ★ 모양을 꾸미시겠습니까?")) {
-                        startDecorating("★");
-                    } else {
-                        showWaiting(status.open_time);
-                    }
+                if(reserveData.status === "TIME_OVER") { alert(reserveData.message); location.reload(); return; }
+                if (reserveData.status === "SUCCESS") startDecorating(reserveData.assigned_char);
+                else {
+                    if(confirm("자리가 꽉 찼습니다! ★ 모양을 꾸미시겠습니까?")) startDecorating("★");
+                    else showWaiting(status.open_time);
                 }
             } catch(e) { alert("서버 연결 실패"); }
         }
@@ -224,9 +180,8 @@
             document.getElementById('actionBar').style.display = 'flex';
             document.getElementById('targetChar').innerText = char;
             document.getElementById('display-name').innerText = myName;
-            
             setTimeout(initCanvas, 100);
-            alert(`[ ${char} ] 모양을 뜨개질해주세요! 🧶\n도구함에서 스티치 모양(♥ ● ∨)을 바꿀 수 있어요.`);
+            alert(`[ ${char} ] 모양을 뜨개질해주세요! 🧶`);
         }
 
         function showScreen(id) {
@@ -236,47 +191,34 @@
             const target = document.getElementById(id);
             if(target) target.classList.remove('hidden');
         }
-
         function showWaiting(timeStr) {
             showScreen('waiting-screen');
             const dateObj = new Date(timeStr);
-            const timeDisplay = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('open-time-display').innerText = `${timeDisplay} OPEN`;
+            document.getElementById('open-time-display').innerText = `${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} OPEN`;
         }
-
         function flipCard() {
             isFlipped = !isFlipped;
             const card = document.getElementById('mainCard');
             const guide = document.getElementById('guideText');
             painting = false; 
-            if(isFlipped) {
-                card.classList.add('is-flipped');
-                guide.innerText = "✍️ 친구들에게 한마디";
-            } else {
-                card.classList.remove('is-flipped');
-                guide.innerText = "🧶 칸을 채워 무늬를 만들어주세요";
-            }
+            if(isFlipped) { card.classList.add('is-flipped'); guide.innerText = "✍️ 친구들에게 한마디"; }
+            else { card.classList.remove('is-flipped'); guide.innerText = "🧶 칸을 채워 무늬를 만들어주세요"; }
         }
 
         function initCanvas() {
             canvas = document.getElementById('drawingCanvas');
             ctx = canvas.getContext('2d');
             const container = document.getElementById('canvasContainer');
+            canvas.width = container.offsetWidth; canvas.height = container.offsetHeight;
+            cols = Math.floor(canvas.width / PIXEL_SIZE); rows = Math.floor(canvas.height / PIXEL_SIZE);
             
-            canvas.width = container.offsetWidth;
-            canvas.height = container.offsetHeight;
-
-            cols = Math.floor(canvas.width / PIXEL_SIZE);
-            rows = Math.floor(canvas.height / PIXEL_SIZE);
+            // [중요] 배경색을 실제로 칠해줍니다 (투명 방지)
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             drawFabricPattern();
-
-            canvas.addEventListener('mousedown', startDraw);
-            canvas.addEventListener('mouseup', endDraw);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('touchstart', startDraw);
-            canvas.addEventListener('touchend', endDraw);
-            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mouseup', endDraw); canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startDraw); canvas.addEventListener('touchend', endDraw); canvas.addEventListener('touchmove', draw);
         }
 
         function drawFabricPattern() {
@@ -285,31 +227,24 @@
                 for (let j = 0; j < rows; j++) {
                     const cx = i * PIXEL_SIZE + PIXEL_SIZE/2;
                     const cy = j * PIXEL_SIZE + PIXEL_SIZE/2;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, 1.5, 0, Math.PI*2); 
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(cx, cy, 1.5, 0, Math.PI*2); ctx.fill();
                 }
             }
         }
-
         function restoreDot(c, r) {
-            const cx = c * PIXEL_SIZE + PIXEL_SIZE/2;
-            const cy = r * PIXEL_SIZE + PIXEL_SIZE/2;
+            const rectX = c * PIXEL_SIZE; const rectY = r * PIXEL_SIZE;
+            // 지우개질 할 때도 배경색으로 덮은 뒤 점을 찍음
+            ctx.fillStyle = BG_COLOR;
+            ctx.fillRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+            const cx = rectX + PIXEL_SIZE/2; const cy = rectY + PIXEL_SIZE/2;
             ctx.fillStyle = FABRIC_DOT_COLOR;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 1.5, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(cx, cy, 1.5, 0, Math.PI*2); ctx.fill();
         }
 
-        // [도형 그리기 함수들]
         function drawStitch(ctx, x, y, size, color, shape) {
-            ctx.fillStyle = color;
-            ctx.strokeStyle = color;
-            const s = size * 0.85;
-            const padding = (size - s) / 2;
-            const ox = x + padding;
-            const oy = y + padding;
-
+            ctx.fillStyle = color; ctx.strokeStyle = color;
+            const s = size * 0.85; const padding = (size - s) / 2;
+            const ox = x + padding; const oy = y + padding;
             ctx.beginPath();
             if (shape === 'heart') {
                 const topCurveHeight = s * 0.3;
@@ -319,68 +254,37 @@
                 ctx.bezierCurveTo(ox + s / 2, oy + s + (s*0.1), ox + s, oy + (s + topCurveHeight) / 2 + (s*0.1), ox + s, oy + topCurveHeight + (s*0.1));
                 ctx.bezierCurveTo(ox + s, oy+(s*0.1), ox + s / 2, oy+(s*0.1), ox + s / 2, oy + topCurveHeight + (s*0.1));
                 ctx.fill();
-            } else if (shape === 'circle') {
-                ctx.arc(ox + s/2, oy + s/2, s/2, 0, Math.PI*2);
-                ctx.fill();
-            } else if (shape === 'v-stitch') {
-                ctx.lineWidth = s * 0.25;
-                ctx.lineCap = 'round';
-                ctx.moveTo(ox, oy);
-                ctx.lineTo(ox + s/2, oy + s);
-                ctx.lineTo(ox + s, oy);
-                ctx.stroke();
+            } else if (shape === 'circle') { ctx.arc(ox + s/2, oy + s/2, s/2, 0, Math.PI*2); ctx.fill(); }
+            else if (shape === 'v-stitch') {
+                ctx.lineWidth = s * 0.25; ctx.lineCap = 'round';
+                ctx.moveTo(ox, oy); ctx.lineTo(ox + s/2, oy + s); ctx.lineTo(ox + s, oy); ctx.stroke();
             }
         }
 
         function startDraw(e) { painting = true; draw(e); }
         function endDraw() { painting = false; ctx.beginPath(); }
-        
         function draw(e) {
-            if (!painting) return;
-            e.preventDefault();
-
+            if (!painting) return; e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             let clientX = e.touches ? e.touches[0].clientX : e.clientX;
             let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
+            const x = clientX - rect.left; const y = clientY - rect.top;
+            const c = Math.floor(x / PIXEL_SIZE); const r = Math.floor(y / PIXEL_SIZE);
+            const rectX = c * PIXEL_SIZE; const rectY = r * PIXEL_SIZE;
 
-            const c = Math.floor(x / PIXEL_SIZE);
-            const r = Math.floor(y / PIXEL_SIZE);
-            const rectX = c * PIXEL_SIZE;
-            const rectY = r * PIXEL_SIZE;
-
-            ctx.clearRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
-
-            if (isEraserMode) {
-                restoreDot(c, r);
-            } else {
+            if (isEraserMode) restoreDot(c, r);
+            else {
+                // 배경 덮고 다시 그리기 (중복 방지)
+                ctx.fillStyle = BG_COLOR; ctx.fillRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
                 drawStitch(ctx, rectX, rectY, PIXEL_SIZE, currentColor, currentShape);
             }
         }
 
-        // [툴바 UI 업데이트]
-        function setShape(shape, btn) {
-            currentShape = shape;
-            isEraserMode = false;
-            updateToolUI(btn, null);
-        }
-
-        function setColor(color, btn) {
-            currentColor = color;
-            isEraserMode = false;
-            updateToolUI(null, btn);
-        }
-
-        function setEraser(btn) {
-            isEraserMode = true;
-            updateToolUI(btn, null);
-        }
-
+        function setShape(shape, btn) { currentShape = shape; isEraserMode = false; updateToolUI(btn, null); }
+        function setColor(color, btn) { currentColor = color; isEraserMode = false; updateToolUI(null, btn); }
+        function setEraser(btn) { isEraserMode = true; updateToolUI(btn, null); }
         function updateToolUI(activeShapeBtn, activeColorBtn) {
             if (activeShapeBtn) {
-                // 모양 버튼 그룹 초기화
                 document.querySelectorAll('.shape-btn:not(.eraser-btn)').forEach(b => b.classList.remove('active'));
                 document.querySelector('.eraser-btn').classList.remove('active');
                 activeShapeBtn.classList.add('active');
@@ -388,31 +292,23 @@
                  document.querySelectorAll('.shape-btn:not(.eraser-btn)').forEach(b => b.classList.remove('active'));
                  document.querySelector('.eraser-btn').classList.add('active');
             }
-
             if (activeColorBtn) {
                 document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
                 activeColorBtn.classList.add('active');
             }
         }
-
         function clearAll() {
             if(confirm("처음부터 다시 뜨시겠습니까?")) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = BG_COLOR; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 drawFabricPattern(); 
             }
         }
-
         function downloadResult() {
             const img = document.querySelector('#final-screen img');
             if (!img || !img.src) return alert("이미지가 없습니다.");
-            const link = document.createElement('a');
-            link.href = img.src;
-            link.download = `Knitting_Card_${roomId}.jpg`; 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const link = document.createElement('a'); link.href = img.src; link.download = `Knitting_Card_${roomId}.jpg`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
-
         function shareKakao() {
             if(!roomId) return;
             const shareUrl = window.location.origin + "/?room=" + roomId;
@@ -427,32 +323,23 @@
                     },
                     buttons: [ { title: '카드 구경하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } } ]
                 });
-            } catch(e) {
-                alert("카카오톡 공유 기능을 사용할 수 없습니다. (설정 키 확인 필요)");
-            }
+            } catch(e) { alert("카카오 공유 오류: " + e); }
         }
-
         async function submitCard() {
             const msg = document.getElementById('letterMsg').value;
             if(!msg) return alert("뒷면에 메시지를 써주세요!");
-            
             const imageData = document.getElementById('drawingCanvas').toDataURL("image/png");
-            
             const res = await fetch(`/join/${roomId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_name: myName, message: msg, image_data: imageData })
             });
             const data = await res.json();
-
             if(data.status === 'SUCCESS' || data.status === 'FULL') {
                 alert("저장 완료! 따뜻한 마음이 전달되었어요 🧶");
                 const statusRes = await fetch(`/status/${roomId}`);
                 const status = await statusRes.json();
                 showWaiting(status.open_time);
-            } else {
-                alert("오류: " + (data.message || "알 수 없는 오류"));
-            }
+            } else alert("오류: " + (data.message || "알 수 없는 오류"));
         }
     </script>
 </body>
