@@ -52,7 +52,7 @@
         
         .row { display: flex; gap: 10px; width: max-content; }
         .slot { width: 80px; height: 80px; background: #555; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 2px solid #666; color: #ccc; font-weight: bold; font-size: 24px; flex-shrink: 0; position: relative; overflow: hidden;}
-        .slot img { width: 100%; height: 100%; object-fit: contain; background: white; }
+        .slot img { width: 100%; height: 100%; object-fit: contain; background: #d7ccc8; }
         .slot.filled { border: 2px solid #ff80ab; animation: pop 0.3s ease; }
         .slot.empty { background: transparent; border: 2px dashed #555; opacity: 0.3; }
         
@@ -63,20 +63,25 @@
 
         #message-list { margin-top: 20px; text-align: left; max-height: 500px; overflow-y: auto; padding-right: 5px; }
         .msg-card { background: #444; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; gap: 15px; align-items: center; border: 1px solid #555; }
-        .msg-img { width: 50px; height: 50px; background: white; border-radius: 8px; object-fit: contain; border: 1px solid #ddd; flex-shrink: 0; }
+        .msg-img { width: 50px; height: 50px; background: #d7ccc8; border-radius: 8px; object-fit: contain; border: 1px solid #ddd; flex-shrink: 0; }
         .msg-content { flex: 1; min-width: 0; }
         .msg-name { font-weight: bold; color: #69f0ae; font-size: 14px; margin-bottom: 3px; }
         .msg-text { font-size: 13px; color: #eee; background: #2a2a2a; padding: 8px; border-radius: 8px; word-wrap: break-word; line-height: 1.4;}
         
         #result-area { margin-top: 20px; display: none; background: #222; padding: 15px; border-radius: 16px; border: 2px solid #444;}
-        #final-img { max-width: 100%; border-radius: 8px; border: 1px solid #555; }
+        
+        /* [수정] 결과 이미지 비율 고정 CSS */
+        #final-img { 
+            width: 100%; 
+            height: auto; 
+            max-height: 70vh; 
+            object-fit: contain; /* 비율 유지 */
+            border-radius: 8px; 
+            border: 1px solid #555; 
+        }
         
         .rejoin-area { margin-top: 40px; border-top: 1px solid #555; padding-top: 20px; }
         .rejoin-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
-        
-        ::-webkit-scrollbar { height: 8px; width: 8px; }
-        ::-webkit-scrollbar-track { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -111,6 +116,7 @@
                 <div class="left-panel">
                     <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스</h3>
                     <div id="live-grid" class="grid-box"></div>
+                    
                     <div id="result-area">
                         <h3 style="margin: 10px 0; color: #ffeb3b;">🎉 완성된 카드</h3>
                         <img id="final-img" src="" alt="결과 이미지">
@@ -145,13 +151,12 @@
         let myRoomId = null;
 
         window.onload = function() {
-            // [NEW] 시작할 때 서버에서 카카오 키 받아오기
+            // 카카오 초기화
             fetch('/api/config')
                 .then(res => res.json())
                 .then(data => {
                     if(data.kakao_key) {
                         Kakao.init(data.kakao_key);
-                        console.log("카카오 초기화 성공");
                     }
                 });
 
@@ -160,34 +165,25 @@
             if (roomId) { rejoinRoom(roomId); }
         };
 
-        // [NEW] 카카오톡 공유 함수
         function shareKakao() {
             if(!myRoomId) return alert("방이 먼저 생성되어야 합니다.");
             
             const shareUrl = window.location.origin + "/?room=" + myRoomId;
             
-            // 카카오톡 공유하기 실행
-            Kakao.Share.sendDefault({
-                objectType: 'feed',
-                content: {
-                    title: '🎄 함께 만드는 크리스마스 카드',
-                    description: '친구들이 모여서 하나의 타이포그래피를 완성해요! 내 글자를 꾸미러 와줘 ✍️',
-                    imageUrl: window.location.origin + '/og-image.png', // 썸네일 이미지
-                    link: {
-                        mobileWebUrl: shareUrl,
-                        webUrl: shareUrl,
+            try {
+                Kakao.Share.sendDefault({
+                    objectType: 'feed',
+                    content: {
+                        title: '🎄 함께 만드는 크리스마스 니트 카드',
+                        description: '친구들이 모여서 하나의 카드를 완성해요! 내 글자를 꾸미러 와줘 ✍️',
+                        imageUrl: window.location.origin + '/og-image.png',
+                        link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
                     },
-                },
-                buttons: [
-                    {
-                        title: '카드 꾸미러 가기',
-                        link: {
-                            mobileWebUrl: shareUrl,
-                            webUrl: shareUrl,
-                        },
-                    },
-                ],
-            });
+                    buttons: [
+                        { title: '카드 꾸미러 가기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } },
+                    ],
+                });
+            } catch(e) { alert("카카오 공유 기능 오류: " + e); }
         }
 
         function goHome() {
@@ -278,6 +274,16 @@
             
             renderLiveGrid(data.slots);
             updateMessageList(data.slots);
+            
+            // 기존 결과물이 있으면 바로 보여주기
+            const imgCheck = await fetch(`/result_card/${myRoomId}`);
+            if(imgCheck.ok) {
+                 const resultArea = document.getElementById('result-area');
+                 const resultImg = document.getElementById('final-img');
+                 resultImg.src = `/result_card/${myRoomId}?t=` + new Date().getTime();
+                 resultArea.style.display = 'block';
+            }
+
             setInterval(fetchLiveStatus, 2000);
         }
 
@@ -349,6 +355,13 @@
         
         async function makeFinalCard() {
             if(!myRoomId) return;
+            
+            // 버튼 상태 변경
+            const btn = document.querySelector('button.final');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ 생성 중...";
+            btn.disabled = true;
+
             await fetch(`/make-card/${myRoomId}`, { method: 'POST' });
             
             const resultArea = document.getElementById('result-area');
@@ -359,7 +372,10 @@
             
             resultArea.style.display = 'block';
             resultArea.scrollIntoView({ behavior: 'smooth' });
+            
             alert("카드 생성 완료!");
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
     </script>
 </body>
