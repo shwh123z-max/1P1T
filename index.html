@@ -3,45 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy</title>
+    <title>Knitting Happy</title>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfTZ060z1kAJGG+uHuha" crossorigin="anonymous"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { box-sizing: border-box; } 
 
-        body { font-family: 'Pretendard', sans-serif; background-color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; perspective: 1000px; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #3e2723; /* 따뜻한 갈색 배경 */ display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; perspective: 1000px; }
 
-        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; background: #222; transition: 0.3s; z-index: 100;}
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; background: #3e2723; transition: 0.3s; z-index: 100;}
         .hidden { display: none !important; }
 
-        .scene { width: 320px; height: 480px; position: relative; display: none; z-index: 50; margin-bottom: 60px; }
-        .card { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 20px; }
+        .scene { width: 340px; height: 500px; position: relative; display: none; z-index: 50; margin-bottom: 60px; }
+        .card { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 15px; }
         .card.is-flipped { transform: rotateY(180deg); }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; overflow: hidden; background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         
-        .card-front { pointer-events: auto; z-index: 2; display: flex; flex-direction: column; }
+        .card-front { pointer-events: auto; z-index: 2; display: flex; flex-direction: column; background: #d7ccc8; } /* 원단 색상 */
         .card-back { pointer-events: none; z-index: 1; transform: rotateY(180deg); background: #fffdf5; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; text-align: center; color: #333; }
         .card.is-flipped .card-front { pointer-events: none; }
         .card.is-flipped .card-back { pointer-events: auto; }
 
-        .canvas-area { flex: 1; position: relative; background: #fff; cursor: crosshair; overflow: hidden; }
+        .canvas-area { flex: 1; position: relative; cursor: crosshair; overflow: hidden; background: #d7ccc8; /* 캔버스 배경도 원단색 */ }
         
-        /* 가이드라인 스타일 */
         .guide-char { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            font-size: 300px; font-weight: 900; color: #eee; opacity: 0.5; 
+            font-size: 300px; font-weight: 900; color: #5d4037; opacity: 0.15; 
             pointer-events: none; user-select: none; z-index: 0; 
         }
         
         canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 10; }
         
-        .tools { height: 60px; background: #f8f8f8; display: flex; justify-content: center; align-items: center; gap: 10px; border-top: 1px solid #ddd; z-index: 20;}
-        .color-btn { width: 30px; height: 30px; border-radius: 5px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;}
-        .trash-btn { background: #eee; color: #555; border: 1px solid #ccc; font-size: 16px; border-radius: 50%; }
+        /* 툴바 스타일 변경 (3색 + 지우개) */
+        .tools { height: 70px; background: #5d4037; display: flex; justify-content: center; align-items: center; gap: 15px; border-top: 4px solid #4e342e; z-index: 20; border-radius: 0 0 15px 15px;}
+        .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);}
+        .color-btn.active { transform: scale(1.1); border-color: white; box-shadow: 0 0 10px white; }
+        .trash-btn { background: #8d6e63; color: white; border: 1px solid #a1887f; font-size: 18px; border-radius: 10px; width: 40px; height: 40px;}
 
         textarea { width: 100%; flex: 1; padding: 15px; border: 2px dashed #ccc; background: transparent; font-size: 16px; font-family: inherit; resize: none; border-radius: 10px; margin-bottom: 20px; }
 
         input.intro-input { padding: 15px; font-size: 20px; border-radius: 30px; border: none; text-align: center; width: 250px; margin-top: 20px;}
-        button.btn-main { padding: 15px 40px; font-size: 18px; border-radius: 30px; border: none; background: #00c853; color: white; margin-top: 20px; cursor: pointer; font-weight: bold; }
+        button.btn-main { padding: 15px 40px; font-size: 18px; border-radius: 30px; border: none; background: #00c853; color: white; margin-top: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,200,83,0.3); }
         
         .action-bar { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 999; pointer-events: none; }
         .btn-circle { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; pointer-events: auto; transition: transform 0.2s; }
@@ -49,36 +51,45 @@
         .btn-send { background: #d63384; color: white; }
         .btn-circle:active { transform: scale(0.9); }
 
-        .top-guide { position: absolute; top: -50px; width: 100%; text-align: center; color: white; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .top-guide { position: absolute; top: -60px; width: 100%; text-align: center; color: #ffecb3; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
+        /* 카카오 버튼 스타일 */
+        .kakao-btn { background-color: #FEE500; color: #000; padding: 12px 20px; border-radius: 30px; border: none; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="intro-screen" class="screen">
-        <h1 style="font-size: 40px;">Pixel Happy</h1>
-        <p>도트 아트로 카드를 꾸며보세요!</p>
-        <input type="text" id="userName" class="intro-input" placeholder="이름을 알려주세요">
+        <h1 style="font-size: 40px; margin-bottom: 5px;">Knitting Mate</h1>
+        <p style="opacity: 0.8;">친구들과 함께 만드는 니트 카드 🧶</p>
+        <input type="text" id="userName" class="intro-input" placeholder="이름이 뭔가요?">
         <button class="btn-main" onclick="checkStart()">시작하기</button>
     </div>
 
     <div id="waiting-screen" class="screen hidden">
-        <h1 style="font-size: 60px;">🔒</h1>
-        <h2>참여 완료!</h2>
-        <p>친구들이 모두 모일 때까지 기다려주세요.</p>
-        <div style="margin-top:20px; font-size: 24px; color: #00c853; font-weight: bold;" id="open-time-display"></div>
+        <h1 style="font-size: 60px;">🧵</h1>
+        <h2>한 땀 한 땀 저장 완료!</h2>
+        <p>친구들이 다 뜰 때까지 기다려주세요.</p>
+        <div style="margin-top:20px; font-size: 24px; color: #81c784; font-weight: bold;" id="open-time-display"></div>
     </div>
 
-    <div id="final-screen" class="screen hidden" style="background: #111;">
-        <h1>Happy!</h1>
-        <div style="margin: 20px; padding: 10px; background: white; border-radius: 10px;">
-            <img src="" style="max-width: 100%; max-height: 60vh; border-radius: 5px;">
+    <div id="final-screen" class="screen hidden" style="background: #222;">
+        <h1 style="color: #ffecb3;">MERRY CHRISTMAS!</h1>
+        <div style="margin: 20px; padding: 10px; background: #3e2723; border-radius: 10px;">
+            <img src="" style="max-width: 100%; max-height: 55vh; border-radius: 5px; border: 2px solid #5d4037;">
         </div>
-        <button class="btn-main" style="background-color: #2979ff; margin-top: 10px; padding: 10px 30px;" onclick="downloadResult()">이미지 저장하기 💾</button>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <button class="btn-main" style="background-color: #2979ff; margin:0; padding: 10px 20px; font-size: 14px;" onclick="downloadResult()">이미지 저장 💾</button>
+            <button class="kakao-btn" onclick="shareKakao()">
+                <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_small.png" width="20"> 공유하기
+            </button>
+        </div>
         <p style="font-size:12px; color:#666; margin-top: 15px;">새로고침하면 최신 이미지를 불러옵니다.</p>
     </div>
 
     <div class="scene" id="workspace">
-        <div class="top-guide" id="guideText">🎨 칸을 채워 글자를 꾸며주세요!</div>
+        <div class="top-guide" id="guideText">🧶 칸을 채워 무늬를 만들어주세요</div>
         
         <div class="card" id="mainCard">
             <div class="card-face card-front">
@@ -87,46 +98,50 @@
                     <canvas id="drawingCanvas"></canvas>
                 </div>
                 <div class="tools">
-                    <div class="color-btn" style="background:black" onclick="setColor('black')"></div>
-                    <div class="color-btn" style="background:#d63384" onclick="setColor('#d63384')"></div>
-                    <div class="color-btn" style="background:#00c853" onclick="setColor('#00c853')"></div>
-                    <div class="color-btn" style="background:#2979ff" onclick="setColor('#2979ff')"></div>
-                    <div class="color-btn" style="background:#ffea00" onclick="setColor('#ffea00')"></div>
-                    <div class="color-btn" style="background:white; border:1px solid #ccc" onclick="setColor('eraser')">🧽</div>
-                    <div class="color-btn trash-btn" onclick="clearAll()" title="전체 지우기">🗑️</div>
+                    <div class="color-btn active" style="background:#b71c1c" onclick="setColor('#b71c1c', this)"></div> <div class="color-btn" style="background:#2e7d32" onclick="setColor('#2e7d32', this)"></div> <div class="color-btn" style="background:#fff9c4" onclick="setColor('#fff9c4', this)"></div> <div class="color-btn" style="background:#d7ccc8; border: 2px dashed #8d6e63; color:#5d4037" onclick="setColor('eraser', this)">✂️</div>
+                    <div style="flex:1"></div>
+                    <button class="trash-btn" onclick="clearAll()">🗑️</button>
                 </div>
             </div>
             <div class="card-face card-back">
-                <h2>To. Host</h2>
-                <textarea id="letterMsg" placeholder="메시지를 남겨주세요..."></textarea>
-                <div style="font-size:12px; color:#999">작성자: <span id="display-name"></span></div>
+                <h2>To. Friends</h2>
+                <textarea id="letterMsg" placeholder="따뜻한 메시지를 남겨주세요..."></textarea>
+                <div style="font-size:12px; color:#999">From. <span id="display-name"></span></div>
             </div>
         </div>
     </div>
 
     <div class="action-bar" id="actionBar" style="display:none;">
         <button class="btn-circle btn-flip" onclick="flipCard()">🔄</button>
-        <button class="btn-circle btn-send" onclick="submitCard()">✈️</button>
+        <button class="btn-circle btn-send" onclick="submitCard()">🧶</button>
     </div>
 
     <script>
-        // 픽셀 아트 설정
-        const PIXEL_SIZE = 15;  // 픽셀 크기 (이 값을 조절하면 칸 크기가 바뀝니다)
-        const GRID_COLOR = "#eeeeee"; // 격자 선 색상
-
+        // [설정] 뜨개질 코 크기 (이걸로 조절)
+        const PIXEL_SIZE = 16;  
+        // 원단 구멍 색상 (배경 그리드)
+        const FABRIC_DOT_COLOR = "#bcaaa4"; 
+        
         let myName = "";
         let isFlipped = false;
         let canvas, ctx, painting = false;
-        let currentColor = "black";
+        let currentColor = "#b71c1c"; // 기본 빨강
         let isEraserMode = false;
         let cols, rows;
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
 
+        // 시작 시 카카오 키 로드
+        window.onload = function() {
+            fetch('/api/config').then(r=>r.json()).then(d=>{
+                if(d.kakao_key) Kakao.init(d.kakao_key);
+            });
+        };
+
         if (!roomId) {
-            alert("잘못된 접근입니다! (방 번호가 없어요)");
-            document.body.innerHTML = "<h1 style='color:white;text-align:center;'>존재하지 않는 방입니다.</h1>";
+            alert("방 번호가 없습니다.");
+            document.body.innerHTML = "<h1 style='color:white;'>잘못된 접근</h1>";
         }
 
         async function checkStart() {
@@ -155,14 +170,13 @@
 
                 if(reserveData.status === "TIME_OVER") {
                     alert(reserveData.message);
-                    location.reload(); 
-                    return;
+                    location.reload(); return;
                 }
 
                 if (reserveData.status === "SUCCESS") {
                     startDecorating(reserveData.assigned_char);
                 } else {
-                    if(confirm("글자 자리가 꽉 찼습니다! 데코레이션(★)으로 참여하시겠습니까?")) {
+                    if(confirm("자리가 꽉 찼습니다! ★ 모양을 꾸미시겠습니까?")) {
                         startDecorating("★");
                     } else {
                         showWaiting(status.open_time);
@@ -178,10 +192,8 @@
             document.getElementById('targetChar').innerText = char;
             document.getElementById('display-name').innerText = myName;
             
-            // 캔버스 초기화 (딜레이를 주어 DOM 렌더링 후 실행)
             setTimeout(initCanvas, 100);
-            
-            alert(`자리 예약 완료!\n[ ${char} ] 모양을 픽셀로 채워주세요!`);
+            alert(`[ ${char} ] 모양을 뜨개질해주세요! 🧶`);
         }
 
         function showScreen(id) {
@@ -206,10 +218,10 @@
             painting = false; 
             if(isFlipped) {
                 card.classList.add('is-flipped');
-                guide.innerText = "✍️ 편지를 작성해주세요";
+                guide.innerText = "✍️ 친구들에게 한마디";
             } else {
                 card.classList.remove('is-flipped');
-                guide.innerText = "🎨 칸을 채워 글자를 꾸며주세요";
+                guide.innerText = "🧶 칸을 채워 무늬를 만들어주세요";
             }
         }
 
@@ -221,39 +233,62 @@
             canvas.width = container.offsetWidth;
             canvas.height = container.offsetHeight;
 
-            // 칸 수 계산
             cols = Math.floor(canvas.width / PIXEL_SIZE);
             rows = Math.floor(canvas.height / PIXEL_SIZE);
 
-            // 그리드 그리기
-            drawGrid();
+            // 초기 천(Fabric) 패턴 그리기
+            drawFabricPattern();
 
-            // 마우스 이벤트
+            // 이벤트 바인딩
             canvas.addEventListener('mousedown', startDraw);
             canvas.addEventListener('mouseup', endDraw);
             canvas.addEventListener('mousemove', draw);
-            
-            // 터치 이벤트
             canvas.addEventListener('touchstart', startDraw);
             canvas.addEventListener('touchend', endDraw);
             canvas.addEventListener('touchmove', draw);
         }
 
-        function drawGrid() {
-            ctx.beginPath();
-            ctx.strokeStyle = GRID_COLOR;
-            ctx.lineWidth = 1;
+        // [핵심] 원단 구멍(Dot) 그리기 - 격자 대신 점을 찍음
+        function drawFabricPattern() {
+            ctx.fillStyle = FABRIC_DOT_COLOR;
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    const cx = i * PIXEL_SIZE + PIXEL_SIZE/2;
+                    const cy = j * PIXEL_SIZE + PIXEL_SIZE/2;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 1.5, 0, Math.PI*2); // 작은 점
+                    ctx.fill();
+                }
+            }
+        }
 
-            for (let i = 0; i <= cols; i++) {
-                const x = i * PIXEL_SIZE;
-                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
-            }
-            for (let i = 0; i <= rows; i++) {
-                const y = i * PIXEL_SIZE;
-                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
-            }
-            ctx.stroke();
+        // 특정 칸의 점만 다시 찍기 (지우개질 할 때 사용)
+        function restoreDot(c, r) {
+            const cx = c * PIXEL_SIZE + PIXEL_SIZE/2;
+            const cy = r * PIXEL_SIZE + PIXEL_SIZE/2;
+            ctx.fillStyle = FABRIC_DOT_COLOR;
             ctx.beginPath();
+            ctx.arc(cx, cy, 1.5, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // [핵심] 하트(뜨개 코) 그리기 함수
+        function drawHeartShape(ctx, x, y, size, color) {
+            ctx.fillStyle = color;
+            const s = size * 0.85; // 칸보다 살짝 작게
+            const padding = (size - s) / 2;
+            const ox = x + padding;
+            const oy = y + padding + (s * 0.1); // 살짝 아래로
+
+            // 하트 그리기 (Bezier Curve)
+            ctx.beginPath();
+            const topCurveHeight = s * 0.3;
+            ctx.moveTo(ox + s / 2, oy + topCurveHeight);
+            ctx.bezierCurveTo(ox + s / 2, oy, ox, oy, ox, oy + topCurveHeight);
+            ctx.bezierCurveTo(ox, oy + (s + topCurveHeight) / 2, ox + s / 2, oy + s, ox + s / 2, oy + s);
+            ctx.bezierCurveTo(ox + s / 2, oy + s, ox + s, oy + (s + topCurveHeight) / 2, ox + s, oy + topCurveHeight);
+            ctx.bezierCurveTo(ox + s, oy, ox + s / 2, oy, ox + s / 2, oy + topCurveHeight);
+            ctx.fill();
         }
 
         function startDraw(e) { painting = true; draw(e); }
@@ -270,38 +305,40 @@
             const x = clientX - rect.left;
             const y = clientY - rect.top;
 
-            // 어떤 칸(Cell)인지 계산
             const c = Math.floor(x / PIXEL_SIZE);
             const r = Math.floor(y / PIXEL_SIZE);
-
             const rectX = c * PIXEL_SIZE;
             const rectY = r * PIXEL_SIZE;
 
+            // 이미 그린 영역 깨끗이 지우기 (중복 덧칠 방지)
+            ctx.clearRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+
             if (isEraserMode) {
-                ctx.clearRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
-                // 지운 자리에 그리드 다시 그리기 (깔끔함 유지)
-                ctx.strokeStyle = GRID_COLOR;
-                ctx.lineWidth = 1;
-                ctx.strokeRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+                // 지우면 -> 다시 원단 구멍(Dot) 복구
+                restoreDot(c, r);
             } else {
-                ctx.fillStyle = currentColor;
-                ctx.fillRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+                // 칠하면 -> 하트 모양 스티치
+                drawHeartShape(ctx, rectX, rectY, PIXEL_SIZE, currentColor);
             }
         }
 
-        function setColor(c) {
-            if(c === 'eraser') { 
+        function setColor(color, btn) {
+            // 버튼 스타일 활성화
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if(color === 'eraser') { 
                 isEraserMode = true; 
             } else { 
                 isEraserMode = false; 
-                currentColor = c; 
+                currentColor = color; 
             }
         }
 
         function clearAll() {
-            if(confirm("모두 지우시겠습니까?")) {
+            if(confirm("처음부터 다시 뜨시겠습니까?")) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawGrid();
+                drawFabricPattern(); // 패턴 복구
             }
         }
 
@@ -310,18 +347,32 @@
             if (!img || !img.src) return alert("이미지가 없습니다.");
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = `Happy_Card_${roomId}.jpg`; 
+            link.download = `Knitting_Card_${roomId}.jpg`; 
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
+        function shareKakao() {
+            if(!roomId) return;
+            const shareUrl = window.location.origin + "/?room=" + roomId;
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: '🎄 포근한 크리스마스 니트 카드',
+                    description: '친구들이 한 땀 한 땀 떠서 만든 카드가 도착했어요!',
+                    imageUrl: document.querySelector('#final-screen img').src, 
+                    link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+                },
+                buttons: [ { title: '카드 구경하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } } ]
+            });
+        }
+
         async function submitCard() {
             const msg = document.getElementById('letterMsg').value;
-            if(!msg) return alert("뒷면에 편지를 써주세요!");
+            if(!msg) return alert("뒷면에 메시지를 써주세요!");
             
-            // 그리드 선은 저장하지 않기 위해 잠시 지우거나 할 수도 있지만, 
-            // 픽셀 아트 느낌을 위해 그대로 전송합니다.
+            // 캔버스 전체(원단 패턴 포함)를 이미지로 변환
             const imageData = document.getElementById('drawingCanvas').toDataURL("image/png");
             
             const res = await fetch(`/join/${roomId}`, {
@@ -331,13 +382,8 @@
             });
             const data = await res.json();
 
-            if(data.status === "TIME_OVER") {
-                alert(data.message);
-                location.reload(); return;
-            }
-
             if(data.status === 'SUCCESS' || data.status === 'FULL') {
-                alert("전송 완료!");
+                alert("저장 완료! 따뜻한 마음이 전달되었어요 🧶");
                 const statusRes = await fetch(`/status/${roomId}`);
                 const status = await statusRes.json();
                 showWaiting(status.open_time);
