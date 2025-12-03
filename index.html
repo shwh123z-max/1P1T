@@ -296,6 +296,19 @@
                 alert("오류: " + (data.message || JSON.stringify(data.detail)));
             }
         }
+        // [추가됨] 결과 이미지 다운로드 함수
+        function downloadResult() {
+            const img = document.querySelector('#final-screen img');
+            if (!img || !img.src) return alert("이미지가 없습니다.");
+
+            const link = document.createElement('a');
+            link.href = img.src;
+            // 파일명 설정 (예: Happy_Card_방번호.jpg)
+            link.download = `Happy_Card_${roomId}.jpg`; 
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
