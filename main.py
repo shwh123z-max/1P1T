@@ -47,16 +47,14 @@ rooms_db: Dict[str, RoomData] = {}
 # ---- API ----
 
 @app.get("/api/config")
-def get_config():
-    return {"kakao_key": None}
+def get_config(): return {"kakao_key": None}
 
 @app.post("/create")
 def create_room(request: CreateRequest):
     room_id = str(uuid.uuid4())[:8] 
     new_slots = []
     for i, char in enumerate(request.text.upper()):
-        is_blocked = (char == " ")
-        new_slots.append(Slot(position=i, char=char, is_filled=is_blocked))
+        new_slots.append(Slot(position=i, char=char, is_filled=(char == " ")))
     
     rooms_db[room_id] = RoomData(
         slots=new_slots,
@@ -110,7 +108,6 @@ def reserve_slot(room_id: str, request: JoinRequest):
 def join_room(room_id: str, request: JoinRequest):
     if room_id not in rooms_db: return {"status": "ERROR", "message": "방이 없습니다."}
     room = rooms_db[room_id]
-    
     now = datetime.now().strftime("%Y-%m-%dT%H:%M")
     if now >= room.open_time: return {"status": "TIME_OVER", "message": "⏰ 마감되었습니다."}
     
@@ -134,7 +131,6 @@ def join_room(room_id: str, request: JoinRequest):
             with open(file_name, "wb") as f: f.write(data)
         except Exception as e: print(f"저장 실패: {e}")
         return {"status": "SUCCESS"}
-            
     return {"status": "FULL", "message": "자리 없음"}
 
 @app.post("/make-card/{room_id}")
@@ -152,18 +148,16 @@ def make_card(room_id: str):
     width = (cols * slot_size) + (margin * 2)
     height = (rows * slot_size) + (margin * 2)
     
-    # [수정] 배경색: 사용자가 그리는 캔버스 색과 동일한 베이지색
-    bg_color = (215, 204, 200) # #d7ccc8
-    dot_color = (188, 170, 164) # #bcaaa4 (구멍 색상)
+    # 베이지색 원단 배경
+    bg_color = (215, 204, 200) 
+    dot_color = (188, 170, 164)
     
     canvas = Image.new('RGB', (width, height), color=bg_color)
     draw = ImageDraw.Draw(canvas)
 
-    # [디자인] 전체 캔버스에 '니트 구멍 패턴' 미리 그리기
-    # 120px 슬롯 기준으로 약 7~8개의 구멍이 들어감. (간격 약 15~16px)
+    # 전체 니트 구멍 패턴
     for py in range(0, height, 15):
         for px in range(0, width, 15):
-            # 약간의 오프셋을 주어 자연스럽게
             draw.ellipse([px, py, px+3, py+3], fill=dot_color)
     
     start_x = margin
@@ -172,7 +166,6 @@ def make_card(room_id: str):
     for slot in room.slots:
         col_idx = slot.position % cols
         row_idx = slot.position // cols
-        
         x = start_x + (col_idx * slot_size)
         y = start_y + (row_idx * slot_size)
         
@@ -184,7 +177,6 @@ def make_card(room_id: str):
                 if os.path.exists(img_path):
                     user_img = Image.open(img_path).convert("RGBA")
                     user_img = user_img.resize((slot_size, slot_size), Image.Resampling.LANCZOS)
-                    # 이미지 붙여넣기 (투명도 마스크 사용)
                     canvas.paste(user_img, (x, y), mask=user_img)
         except Exception as e: 
             print(f"이미지 병합 오류: {e}")
