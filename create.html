@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>호스트 관리자</title>
+    
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { box-sizing: border-box; } 
@@ -34,7 +35,6 @@
         .home-btn { background: #444; border: 1px solid #666; padding: 8px 15px; border-radius: 8px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 10px; }
         .home-btn:hover { background: #555; color: white; }
 
-        /* [라이브 캔버스] 완전 밀착 스타일 */
         .grid-box { 
             background: #444; 
             padding: 20px; 
@@ -42,6 +42,8 @@
             display: flex; flex-direction: column; align-items: center; 
             overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 200px;
         }
+        
+        /* [수정] 이음새 없는 그리드 */
         .row { display: flex; width: max-content; margin: 0; padding: 0; } 
         .slot { 
             width: 70px; height: 70px; 
@@ -68,8 +70,8 @@
         /* [중요] 최종 이미지 비율 고정 */
         #final-img { 
             max-width: 100%; 
-            width: auto !important; 
-            height: auto !important; 
+            width: auto; 
+            height: auto; 
             border-radius: 8px; 
             border: 1px solid #555; 
             display: inline-block;
@@ -111,7 +113,6 @@
                 <div class="left-panel">
                     <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스</h3>
                     <div id="live-grid" class="grid-box"></div>
-                    
                     <div id="result-area">
                         <h3 style="margin: 10px 0; color: #ffeb3b;">🎉 완성된 카드</h3>
                         <img id="final-img" src="" alt="결과 이미지">
@@ -123,6 +124,7 @@
                         <div style="color:#aaa; font-size:12px; margin-bottom:5px;">친구 초대 링크 👇</div>
                         <a id="share-link" href="#" target="_blank">링크 생성 중...</a>
                     </div>
+
                     <button class="final" onclick="makeFinalCard()">🎁 최종 카드 생성 & 저장</button>
                     <p style="font-size:12px; color:#aaa; margin-top:5px; margin-bottom: 30px;">* 친구들이 다 그리면 눌러주세요</p>
 
