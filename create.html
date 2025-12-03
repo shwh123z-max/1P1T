@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>호스트 관리자</title>
-    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2txfTZ060z1kAJGG+uHuha" crossorigin="anonymous"></script>
-    
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { box-sizing: border-box; } 
@@ -36,44 +34,23 @@
         .home-btn { background: #444; border: 1px solid #666; padding: 8px 15px; border-radius: 8px; font-size: 14px; color: #aaa; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 10px; }
         .home-btn:hover { background: #555; color: white; }
 
-        /* [수정] 카카오 버튼 스타일 강화 */
-        .kakao-btn { 
-            background-color: #FEE500 !important; 
-            color: #3b1e1e !important; 
-            margin-top: 15px; 
-            margin-bottom: 15px;
-            display: flex !important; 
-            align-items: center; justify-content: center; gap: 8px;
-            font-weight: 800;
-            border-radius: 12px;
-        }
-        .kakao-icon { width: 24px; height: 24px; }
-
-        /* [수정] 라이브 캔버스: 완전 밀착 스타일 */
+        /* [라이브 캔버스] 완전 밀착 스타일 */
         .grid-box { 
             background: #444; 
-            padding: 20px; /* 박스 자체 패딩은 유지하되 */
+            padding: 20px; 
             border-radius: 16px; 
-            display: flex; flex-direction: column; align-items: center; /* 중앙 정렬 */
+            display: flex; flex-direction: column; align-items: center; 
             overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 200px;
         }
-        
-        /* 줄 간격 제거 */
         .row { display: flex; width: max-content; margin: 0; padding: 0; } 
-        
-        /* 슬롯 간격/테두리 제거 -> 하나로 합체 */
         .slot { 
-            width: 70px; height: 70px; /* 크기 조정 */
+            width: 70px; height: 70px; 
             background: #555; 
             display: flex; align-items: center; justify-content: center; 
-            border: none; /* 테두리 삭제 */
-            margin: 0; padding: 0; /* 여백 삭제 */
+            border: none; margin: 0; padding: 0; 
             flex-shrink: 0; position: relative; overflow: hidden;
         }
-        /* 이미지가 슬롯을 꽉 채우도록 */
         .slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        
-        /* 빈 칸 스타일 */
         .slot.empty { background: transparent; border: 1px dashed #666; opacity: 0.2; }
         
         #link-box { margin-bottom: 10px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
@@ -88,14 +65,14 @@
         
         #result-area { margin-top: 20px; display: none; background: #222; padding: 20px; border-radius: 16px; border: 2px solid #444; text-align: center;}
         
-        /* [핵심 수정] 최종 이미지 비율 고정 (짜부 해결) */
+        /* [중요] 최종 이미지 비율 고정 */
         #final-img { 
-            max-width: 100%; /* 부모 너비를 넘지 않음 */
-            width: auto;     /* 원본 비율 유지 (강제 늘림 방지) */
-            height: auto;    /* 원본 비율 유지 */
-            max-height: 80vh; 
+            max-width: 100%; 
+            width: auto !important; 
+            height: auto !important; 
             border-radius: 8px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #555; 
+            display: inline-block;
         }
         
         .rejoin-area { margin-top: 40px; border-top: 1px solid #555; padding-top: 20px; }
@@ -146,14 +123,6 @@
                         <div style="color:#aaa; font-size:12px; margin-bottom:5px;">친구 초대 링크 👇</div>
                         <a id="share-link" href="#" target="_blank">링크 생성 중...</a>
                     </div>
-
-                    <div style="margin: 20px 0;">
-                        <button id="kakao-invite-btn" class="kakao-btn" onclick="shareKakao()">
-                            <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_small.png" class="kakao-icon">
-                            카카오톡으로 초대하기
-                        </button>
-                    </div>
-
                     <button class="final" onclick="makeFinalCard()">🎁 최종 카드 생성 & 저장</button>
                     <p style="font-size:12px; color:#aaa; margin-top:5px; margin-bottom: 30px;">* 친구들이 다 그리면 눌러주세요</p>
 
@@ -171,33 +140,10 @@
         let myRoomId = null;
 
         window.onload = function() {
-            fetch('/api/config')
-                .then(res => res.json())
-                .then(data => {
-                    if(data.kakao_key) Kakao.init(data.kakao_key);
-                });
-
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('room');
             if (roomId) { rejoinRoom(roomId); }
         };
-
-        function shareKakao() {
-            if(!myRoomId) return alert("방이 먼저 생성되어야 합니다.");
-            const shareUrl = window.location.origin + "/?room=" + myRoomId;
-            try {
-                Kakao.Share.sendDefault({
-                    objectType: 'feed',
-                    content: {
-                        title: '🎄 크리스마스 니트 카드 만들기',
-                        description: '친구들이 한 땀 한 땀 떠서 카드를 완성해요!',
-                        imageUrl: window.location.origin + '/og-image.png',
-                        link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
-                    },
-                    buttons: [ { title: '참여하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } } ],
-                });
-            } catch(e) { alert("카카오 공유 오류 (키 설정 확인 필요): " + e); }
-        }
 
         function goHome() {
             if(confirm("현재 방에서 나가시겠습니까?")) {
@@ -312,7 +258,7 @@
             const liveBox = document.getElementById('live-grid');
             liveBox.innerHTML = '';
             
-            // [수정] 그리드 컨테이너 스타일 보정 (중앙 정렬)
+            // 중앙 정렬
             liveBox.style.display = 'flex';
             liveBox.style.flexDirection = 'column';
             liveBox.style.alignItems = 'center';
