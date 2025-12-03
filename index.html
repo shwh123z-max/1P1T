@@ -28,15 +28,15 @@
         /* 가이드라인 스타일 */
         .guide-char { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            font-size: 300px; font-weight: 900; color: #ddd; opacity: 0.3; 
-            pointer-events: none; user-select: none; z-index: 1; 
+            font-size: 300px; font-weight: 900; color: #eee; opacity: 0.5; 
+            pointer-events: none; user-select: none; z-index: 0; 
         }
         
         canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 10; }
         
         .tools { height: 60px; background: #f8f8f8; display: flex; justify-content: center; align-items: center; gap: 10px; border-top: 1px solid #ddd; z-index: 20;}
-        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;}
-        .trash-btn { background: #eee; color: #555; border: 1px solid #ccc; font-size: 16px; }
+        .color-btn { width: 30px; height: 30px; border-radius: 5px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;}
+        .trash-btn { background: #eee; color: #555; border: 1px solid #ccc; font-size: 16px; border-radius: 50%; }
 
         textarea { width: 100%; flex: 1; padding: 15px; border: 2px dashed #ccc; background: transparent; font-size: 16px; font-family: inherit; resize: none; border-radius: 10px; margin-bottom: 20px; }
 
@@ -51,13 +51,12 @@
 
         .top-guide { position: absolute; top: -50px; width: 100%; text-align: center; color: white; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
     </style>
-    <meta name="theme-color" content="#222222">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
+
     <div id="intro-screen" class="screen">
-        <h1 style="font-size: 40px;">Happy</h1>
-        <p>친구들과 카드를 완성해보세요</p>
+        <h1 style="font-size: 40px;">Pixel Happy</h1>
+        <p>도트 아트로 카드를 꾸며보세요!</p>
         <input type="text" id="userName" class="intro-input" placeholder="이름을 알려주세요">
         <button class="btn-main" onclick="checkStart()">시작하기</button>
     </div>
@@ -69,18 +68,17 @@
         <div style="margin-top:20px; font-size: 24px; color: #00c853; font-weight: bold;" id="open-time-display"></div>
     </div>
 
-<div id="final-screen" class="screen hidden" style="background: #111;">
+    <div id="final-screen" class="screen hidden" style="background: #111;">
         <h1>Happy!</h1>
         <div style="margin: 20px; padding: 10px; background: white; border-radius: 10px;">
-            <img src="result_card.jpg" style="max-width: 100%; max-height: 60vh; border-radius: 5px;">
+            <img src="" style="max-width: 100%; max-height: 60vh; border-radius: 5px;">
         </div>
         <button class="btn-main" style="background-color: #2979ff; margin-top: 10px; padding: 10px 30px;" onclick="downloadResult()">이미지 저장하기 💾</button>
-        
         <p style="font-size:12px; color:#666; margin-top: 15px;">새로고침하면 최신 이미지를 불러옵니다.</p>
     </div>
 
     <div class="scene" id="workspace">
-        <div class="top-guide" id="guideText">🎨 글자를 예쁘게 꾸며주세요!</div>
+        <div class="top-guide" id="guideText">🎨 칸을 채워 글자를 꾸며주세요!</div>
         
         <div class="card" id="mainCard">
             <div class="card-face card-front">
@@ -112,11 +110,16 @@
     </div>
 
     <script>
+        // 픽셀 아트 설정
+        const PIXEL_SIZE = 15;  // 픽셀 크기 (이 값을 조절하면 칸 크기가 바뀝니다)
+        const GRID_COLOR = "#eeeeee"; // 격자 선 색상
+
         let myName = "";
         let isFlipped = false;
         let canvas, ctx, painting = false;
-        let currentColor = "black", lineWidth = 5;
-        let isEraserMode = false; // [NEW] 지우개 모드 상태 변수
+        let currentColor = "black";
+        let isEraserMode = false;
+        let cols, rows;
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
@@ -135,10 +138,7 @@
                 const res = await fetch(`/status/${roomId}`);
                 const status = await res.json();
                 
-                if(status.error) {
-                    alert("방이 존재하지 않습니다.");
-                    return;
-                }
+                if(status.error) return alert("방이 존재하지 않습니다.");
 
                 if(status.is_open) {
                     document.querySelector('#final-screen img').src = `/result_card/${roomId}`;
@@ -177,8 +177,11 @@
             document.getElementById('actionBar').style.display = 'flex';
             document.getElementById('targetChar').innerText = char;
             document.getElementById('display-name').innerText = myName;
-            initCanvas();
-            alert(`자리 예약 완료!\n당신이 꾸밀 글자는 [ ${char} ] 입니다!`);
+            
+            // 캔버스 초기화 (딜레이를 주어 DOM 렌더링 후 실행)
+            setTimeout(initCanvas, 100);
+            
+            alert(`자리 예약 완료!\n[ ${char} ] 모양을 픽셀로 채워주세요!`);
         }
 
         function showScreen(id) {
@@ -206,7 +209,7 @@
                 guide.innerText = "✍️ 편지를 작성해주세요";
             } else {
                 card.classList.remove('is-flipped');
-                guide.innerText = "🎨 글자를 예쁘게 꾸며주세요";
+                guide.innerText = "🎨 칸을 채워 글자를 꾸며주세요";
             }
         }
 
@@ -214,64 +217,111 @@
             canvas = document.getElementById('drawingCanvas');
             ctx = canvas.getContext('2d');
             const container = document.getElementById('canvasContainer');
+            
             canvas.width = container.offsetWidth;
             canvas.height = container.offsetHeight;
+
+            // 칸 수 계산
+            cols = Math.floor(canvas.width / PIXEL_SIZE);
+            rows = Math.floor(canvas.height / PIXEL_SIZE);
+
+            // 그리드 그리기
+            drawGrid();
+
+            // 마우스 이벤트
             canvas.addEventListener('mousedown', startDraw);
             canvas.addEventListener('mouseup', endDraw);
             canvas.addEventListener('mousemove', draw);
+            
+            // 터치 이벤트
             canvas.addEventListener('touchstart', startDraw);
             canvas.addEventListener('touchend', endDraw);
             canvas.addEventListener('touchmove', draw);
         }
+
+        function drawGrid() {
+            ctx.beginPath();
+            ctx.strokeStyle = GRID_COLOR;
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= cols; i++) {
+                const x = i * PIXEL_SIZE;
+                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+            }
+            for (let i = 0; i <= rows; i++) {
+                const y = i * PIXEL_SIZE;
+                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+            ctx.beginPath();
+        }
+
         function startDraw(e) { painting = true; draw(e); }
         function endDraw() { painting = false; ctx.beginPath(); }
         
         function draw(e) {
             if (!painting) return;
             e.preventDefault();
+
             const rect = canvas.getBoundingClientRect();
             let clientX = e.touches ? e.touches[0].clientX : e.clientX;
             let clientY = e.touches ? e.touches[0].clientY : e.clientY;
             
-            ctx.lineWidth = lineWidth;
-            ctx.lineCap = 'round';
-            
-            // [핵심 수정] 지우개 모드일 때는 'destination-out' 사용!
-            if (isEraserMode) {
-                ctx.globalCompositeOperation = 'destination-out'; // 투명하게 지우기
-                ctx.strokeStyle = 'rgba(0,0,0,1)'; // 색상은 상관없음
-            } else {
-                ctx.globalCompositeOperation = 'source-over'; // 덮어쓰기 (기본값)
-                ctx.strokeStyle = currentColor;
-            }
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
 
-            ctx.lineTo(clientX - rect.left, clientY - rect.top);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(clientX - rect.left, clientY - rect.top);
+            // 어떤 칸(Cell)인지 계산
+            const c = Math.floor(x / PIXEL_SIZE);
+            const r = Math.floor(y / PIXEL_SIZE);
+
+            const rectX = c * PIXEL_SIZE;
+            const rectY = r * PIXEL_SIZE;
+
+            if (isEraserMode) {
+                ctx.clearRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+                // 지운 자리에 그리드 다시 그리기 (깔끔함 유지)
+                ctx.strokeStyle = GRID_COLOR;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+            } else {
+                ctx.fillStyle = currentColor;
+                ctx.fillRect(rectX, rectY, PIXEL_SIZE, PIXEL_SIZE);
+            }
         }
 
-        // [수정] 색상 변경 함수
         function setColor(c) {
             if(c === 'eraser') { 
-                isEraserMode = true; // 지우개 모드 ON
-                lineWidth = 20; 
+                isEraserMode = true; 
             } else { 
-                isEraserMode = false; // 지우개 모드 OFF
+                isEraserMode = false; 
                 currentColor = c; 
-                lineWidth = 5; 
             }
         }
 
         function clearAll() {
-            if(confirm("그림을 모두 지우시겠습니까?")) {
+            if(confirm("모두 지우시겠습니까?")) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawGrid();
             }
+        }
+
+        function downloadResult() {
+            const img = document.querySelector('#final-screen img');
+            if (!img || !img.src) return alert("이미지가 없습니다.");
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `Happy_Card_${roomId}.jpg`; 
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         async function submitCard() {
             const msg = document.getElementById('letterMsg').value;
             if(!msg) return alert("뒷면에 편지를 써주세요!");
+            
+            // 그리드 선은 저장하지 않기 위해 잠시 지우거나 할 수도 있지만, 
+            // 픽셀 아트 느낌을 위해 그대로 전송합니다.
             const imageData = document.getElementById('drawingCanvas').toDataURL("image/png");
             
             const res = await fetch(`/join/${roomId}`, {
@@ -283,8 +333,7 @@
 
             if(data.status === "TIME_OVER") {
                 alert(data.message);
-                location.reload(); 
-                return;
+                location.reload(); return;
             }
 
             if(data.status === 'SUCCESS' || data.status === 'FULL') {
@@ -293,21 +342,8 @@
                 const status = await statusRes.json();
                 showWaiting(status.open_time);
             } else {
-                alert("오류: " + (data.message || JSON.stringify(data.detail)));
+                alert("오류: " + (data.message || "알 수 없는 오류"));
             }
-        }
-        // [추가됨] 결과 이미지 다운로드 함수
-        function downloadResult() {
-            const img = document.querySelector('#final-screen img');
-            if (!img || !img.src) return alert("이미지가 없습니다.");
-
-            const link = document.createElement('a');
-            link.href = img.src;
-            // 파일명 설정 (예: Happy_Card_방번호.jpg)
-            link.download = `Happy_Card_${roomId}.jpg`; 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
     </script>
 </body>
