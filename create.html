@@ -37,24 +37,93 @@
 
         .grid-box { 
             background: #444; 
-            padding: 20px; 
+            padding: 40px; 
             border-radius: 16px; 
             display: flex; flex-direction: column; align-items: center; 
-            overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 200px;
+            overflow-x: auto; width: 100%; border: 2px dashed #555; min-height: 300px;
         }
         
-        /* [수정] 이음새 없는 그리드 */
         .row { display: flex; width: max-content; margin: 0; padding: 0; } 
+        
+        /* [핵심] 플립 카드 스타일 */
         .slot { 
             width: 70px; height: 70px; 
-            background: #555; 
-            display: flex; align-items: center; justify-content: center; 
-            border: none; margin: 0; padding: 0; 
-            flex-shrink: 0; position: relative; overflow: hidden;
+            background: transparent;
+            perspective: 1000px; /* 3D 효과 */
+            margin: 0; padding: 0; border: none;
+            flex-shrink: 0; position: relative;
+            z-index: 1; /* 기본 z-index */
         }
-        .slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .slot.empty { background: transparent; border: 1px dashed #666; opacity: 0.2; }
+
+        /* 호버 시 확대 및 최상단 노출 */
+        .slot:hover { 
+            z-index: 100; 
+        }
+
+        .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 쫀득한 느낌 */
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 호버 시 뒤집기 + 확대 */
+        .slot:hover .flip-inner {
+            transform: rotateY(180deg) scale(2.2); /* 2.2배 확대 */
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+
+        .flip-front, .flip-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        /* 앞면 (이미지) */
+        .flip-front {
+            background-color: #d7ccc8;
+        }
+        .flip-front img { 
+            width: 100%; height: 100%; object-fit: cover; 
+        }
         
+        /* [디자인] 니트 질감 오버레이 */
+        .card-texture::after {
+            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+            background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 3px 3px;
+            pointer-events: none;
+        }
+
+        /* 뒷면 (편지) */
+        .flip-back {
+            background-color: #fffdf5;
+            color: #333;
+            transform: rotateY(180deg);
+            border: 2px solid #ff80ab;
+            border-radius: 4px;
+            padding: 5px;
+            flex-direction: column;
+            font-size: 6px; /* 매우 작게 시작 (확대되면 커짐) */
+            line-height: 1.2;
+            text-align: center;
+        }
+        .flip-back strong { color: #d63384; font-size: 7px; display: block; margin-bottom: 2px; }
+        .msg-content-preview { word-break: break-all; white-space: pre-wrap; height: 100%; overflow: hidden; display: flex; align-items: center;}
+
+        /* 빈 슬롯 */
+        .slot.empty .flip-inner { box-shadow: none; }
+        .slot.empty .flip-front { 
+            background: transparent; border: 1px dashed #666; opacity: 0.2; 
+        }
+
         #link-box { margin-bottom: 10px; background: #222; padding: 15px; word-break: break-all; border-radius: 12px; border: 1px solid #00c853; font-family: monospace; font-size: 13px;}
         a { color: #69f0ae; text-decoration: none; }
 
@@ -67,7 +136,6 @@
         
         #result-area { margin-top: 20px; display: none; background: #222; padding: 20px; border-radius: 16px; border: 2px solid #444; text-align: center;}
         
-        /* [중요] 최종 이미지 비율 고정 */
         #final-img { 
             max-width: 100%; 
             width: auto; 
@@ -86,7 +154,7 @@
         
         <div id="screen-setup" class="screen active" style="max-width: 600px; margin: 0 auto;">
             <h2>🎨 방 만들기</h2>
-            <textarea id="TextInput" placeholder="MERRY&#10;CHRISTMAS" maxlength="50" oninput="handleInput()"></textarea>
+            <textarea id="TextInput" placeholder="HELLO" maxlength="50" oninput="handleInput()"></textarea>
             <input type="datetime-local" id="TimeInput">
             <div id="preview-box" class="grid-box" style="align-items: center; min-height: 100px;"></div> 
             <button onclick="createRoom()">이대로 방 생성</button>
@@ -111,7 +179,7 @@
 
             <div class="dashboard-layout">
                 <div class="left-panel">
-                    <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스</h3>
+                    <h3 style="margin-top:0; color:#ddd; text-align: left; font-size: 16px;">🖼️ 라이브 캔버스 (마우스를 올려보세요!)</h3>
                     <div id="live-grid" class="grid-box"></div>
                     <div id="result-area">
                         <h3 style="margin: 10px 0; color: #ffeb3b;">🎉 완성된 카드</h3>
@@ -174,9 +242,14 @@
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'row';
                 for (let char of line) {
+                    // 프리뷰용 간단한 슬롯 (플립 없음)
                     const slotDiv = document.createElement('div');
                     slotDiv.className = (char === " ") ? 'slot empty' : 'slot';
-                    if(char !== " ") slotDiv.innerText = char;
+                    if(char !== " ") {
+                        slotDiv.innerHTML = `<div class="flip-inner"><div class="flip-front" style="background:#555; color:#aaa; font-size:24px; font-weight:bold;">${char}</div></div>`;
+                    } else {
+                        slotDiv.innerHTML = `<div class="flip-inner"><div class="flip-front"></div></div>`;
+                    }
                     rowDiv.appendChild(slotDiv);
                 }
                 box.appendChild(rowDiv);
@@ -260,7 +333,6 @@
             const liveBox = document.getElementById('live-grid');
             liveBox.innerHTML = '';
             
-            // 중앙 정렬
             liveBox.style.display = 'flex';
             liveBox.style.flexDirection = 'column';
             liveBox.style.alignItems = 'center';
@@ -276,16 +348,38 @@
                 }
                 const slotDiv = document.createElement('div');
                 
+                // 공백 처리
                 if (slot.char === " ") {
                     slotDiv.className = 'slot empty';
+                    slotDiv.innerHTML = `<div class="flip-inner"><div class="flip-front"></div></div>`;
                 } else {
+                    slotDiv.className = 'slot';
                     if(slot.is_filled) {
-                        slotDiv.className = 'slot filled';
                         const time = new Date().getTime();
-                        slotDiv.innerHTML = `<img src="/img/${myRoomId}/${slot.position}?t=${time}">`;
+                        // [핵심] 플립 카드 구조 생성
+                        slotDiv.innerHTML = `
+                            <div class="flip-inner">
+                                <div class="flip-front card-texture">
+                                    <img src="/img/${myRoomId}/${slot.position}?t=${time}">
+                                </div>
+                                <div class="flip-back">
+                                    <strong>From. ${slot.user || '익명'}</strong>
+                                    <div class="msg-content-preview">${slot.message || '메시지가 없습니다.'}</div>
+                                </div>
+                            </div>
+                        `;
                     } else {
-                        slotDiv.className = 'slot';
-                        slotDiv.innerText = slot.char;
+                        // 아직 안 채워짐
+                        slotDiv.innerHTML = `
+                            <div class="flip-inner">
+                                <div class="flip-front" style="background:#555; display:flex; align-items:center; justify-content:center; color:#888; font-weight:bold; font-size:24px;">
+                                    ${slot.char}
+                                </div>
+                                <div class="flip-back">
+                                    <div style="color:#aaa;">대기 중...</div>
+                                </div>
+                            </div>
+                        `;
                     }
                 }
                 currentRow.appendChild(slotDiv);
