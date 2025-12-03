@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict
-from PIL import Image
+from PIL import Image, ImageDraw
 from datetime import datetime
 import base64
 import os
@@ -48,7 +48,8 @@ rooms_db: Dict[str, RoomData] = {}
 
 @app.get("/api/config")
 def get_config():
-    return {"kakao_key": os.environ.get("KAKAO_KEY")}
+    # 카카오 키가 있어도 이제 안 씀 (빈 값 반환)
+    return {"kakao_key": None}
 
 @app.post("/create")
 def create_room(request: CreateRequest):
@@ -89,11 +90,6 @@ def get_result_card(room_id: str):
     file_path = f"result_{room_id}.jpg"
     if os.path.exists(file_path): return FileResponse(file_path)
     return {"error": "Not generated yet"}
-
-@app.get("/og-image.png")
-def get_og_image():
-    if os.path.exists("og-image.png"): return FileResponse("og-image.png")
-    return {"error": "No image"}
 
 @app.post("/reserve/{room_id}")
 def reserve_slot(room_id: str, request: JoinRequest):
@@ -151,29 +147,39 @@ def make_card(room_id: str):
     total_slots = len(room.slots)
     rows = (total_slots // cols) + (1 if total_slots % cols else 0)
     
-    # [설정] 촘촘한 니트 연결을 위한 설정
     slot_size = 120    
-    gap = 0            # 간격 없음 (딱 붙임)
-    margin = 10        # 외곽 여백 최소화
+    margin = 40  # 외곽 여백 (이 부분도 빨간 니트로 채워짐)
     
-    # 콘텐츠 크기 계산 (최소 크기 강제 X -> 찌그러짐 원인 제거)
+    # 전체 캔버스 크기
     width = (cols * slot_size) + (margin * 2)
     height = (rows * slot_size) + (margin * 2)
     
-    # 배경색: 니트 원단 색상 (#d7ccc8 유사)
-    bg_color = (215, 204, 200) 
+    # [핵심] 배경: 크리스마스 레드 (#b71c1c)
+    bg_color = (183, 28, 28) 
+    dot_color = (160, 20, 20) # 배경 패턴용 더 진한 빨강
+    
     canvas = Image.new('RGB', (width, height), color=bg_color)
+    draw = ImageDraw.Draw(canvas)
+
+    # [디자인] 배경 전체에 니트 구멍 패턴 그리기 (자동 채움 효과)
+    # 픽셀 사이즈 16px 기준 (HTML과 동일 비율) -> 120px 안에 약 7.5개... 
+    # 여기서는 단순화를 위해 20px 간격으로 점을 찍습니다.
+    for py in range(0, height, 15):
+        for px in range(0, width, 15):
+            draw.ellipse([px, py, px+2, py+2], fill=dot_color)
     
     start_x = margin
     start_y = margin
 
     for slot in room.slots:
-        if slot.char == " ": continue 
         col_idx = slot.position % cols
         row_idx = slot.position // cols
         
         x = start_x + (col_idx * slot_size)
         y = start_y + (row_idx * slot_size)
+        
+        # 공백(Space)인 경우에도 빨간 배경이 유지되므로 자연스러움
+        if slot.char == " ": continue 
         
         try:
             if slot.is_filled and slot.user:
@@ -181,7 +187,13 @@ def make_card(room_id: str):
                 if os.path.exists(img_path):
                     user_img = Image.open(img_path).convert("RGBA")
                     user_img = user_img.resize((slot_size, slot_size), Image.Resampling.LANCZOS)
+                    # 붙여넣기
                     canvas.paste(user_img, (x, y), mask=user_img)
+            else:
+                # [선택] 아직 안 채워진 글자 자리 처리 (약하게 표시할지 말지)
+                # 여기서는 비워둡니다 (빨간 배경이 보임)
+                pass
+
         except Exception as e: 
             print(f"이미지 병합 오류: {e}")
             
